@@ -53,7 +53,7 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): ?User
     {
-        if (! Auth::attempt($this->validated(), $this->boolean("remember"))) {
+        if (! Auth::attempt($this->credentials(), $this->boolean("remember"))) {
             $this->failedLogin();
             return null;
         }

@@ -6,7 +6,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use Exception;
-use Illuminate\Foundation\Auth\User;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -20,7 +20,7 @@ class AuthController extends Controller
     private function createToken(User $user): \Illuminate\Cookie\CookieJar|\Symfony\Component\HttpFoundation\Cookie
     {
         $token = $user->createToken(
-            'sinau_rek_token',
+            'vemer_token',
             ['*'],
             now()->addMinutes((int)config('session.lifetime'))
         )->plainTextToken;
