@@ -5,54 +5,74 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\AssetRelation;
 use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AssetController extends Controller
 {
     //
     public function getAsset(int $model_id, string $asset_type, bool $singleAsset = true) {
         try {
-            $assets = DB::table('asset_relations as ar')
-                        ->select([
-                            'a.id',
-                            'a.file_name',
-                            'a.path',
-                            'a.mime_type',
-                            'ar.asset_type',
-                        ])
-                        ->join('assets as a', 'a.id', '=', 'ar.asset_id')
-                        ->where([
-                            'model_id' => $model_id,
-                            'asset_type' => $asset_type,
-                        ]);
+            $assets = AssetRelation::query()
+                                    ->select([
+                                        'a.id',
+                                        'a.file_name',
+                                        'a.path',
+                                        'a.mime_type',
+                                        'ar.asset_type',
+                                    ])
+                                    ->join('assets as a', 'a.id', '=', 'ar.asset_id')
+                                    ->where([
+                                        'model_id' => $model_id,
+                                        'asset_type' => $asset_type,
+                                    ]);
 
-            return $singleAsset ? $assets->first() : $assets->get();            
+            $storage = Storage::disk('supabase');
+
+            if ($singleAsset) {
+                $asset = $assets->first();
+                if ($asset) {
+                    $asset->path = $storage->url($asset->path);
+                }
+                return $asset;
+            } else {
+                return $assets->get()->map(function($asset) use($storage) {
+                    $asset->path = $storage->url($asset->path);
+                    return $asset;
+                });
+            }
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return null;
         }
     }
 
-    public function registerModel(int $model_id, int $asset_id, string $asset_type) {
+    public function uploadAsset(UploadedFile $file, string $path, int $model_id, string $model_type, string $asset_type) {
         try {
-            $asset = Asset::create([
-                'model_id' => $model_id,
-                'asset_id' => $asset_id,
-                'asset_type' => $asset_type,
-            ]);
+            $storage = Storage::disk('supabase');
+            $fileName = time() . '_' . $file->getClientOriginalName();
 
-            $ar = AssetRelation::create([
-                'asset_type' => $asset_type,
-                'model_id' => $model_id,
-                'asset_id' => $asset->id,
-            ]);
+            $newPath = $storage->putFileAs($path, $file, $fileName);
 
-            return [
-                'asset' => $asset,
-                'asset_relation' => $ar,
-            ];
+            if ($path) {
+                $asset = Asset::create([
+                    'file_name' => $fileName,
+                    'path' => $newPath,
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+    
+                $ar = AssetRelation::create([
+                    'asset_type' => $asset_type,
+                    'model_id' => $model_id,
+                    'asset_id' => $asset->id,
+                ]);
+    
+                return $asset;
+            }
+
+            return false;
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return null;
