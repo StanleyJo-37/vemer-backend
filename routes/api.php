@@ -17,3 +17,4 @@ Route::prefix('/auth')->group(function() {
 Route::prefix('/public')->group(function(){
     Route::get('/activity/{id}', [ActivityController::class, "getActivityById"]);
 });
+
