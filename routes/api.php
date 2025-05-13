@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -11,4 +12,8 @@ Route::get('/user', function (Request $request) {
 Route::prefix('/auth')->group(function() {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+});
+
+Route::prefix('/public')->group(function(){
+    Route::get('/activity/{id}', [ActivityController::class, "getActivityById"]);
 });
