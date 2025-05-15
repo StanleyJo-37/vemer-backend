@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,7 @@ Route::prefix('/public')->group(function () {
 
 // Auth
 Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
         Route::get('/{id}', [ActivityController::class, 'getDetail']);
