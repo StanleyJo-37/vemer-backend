@@ -102,7 +102,7 @@ class AuthController extends Controller
     public function loginSSO(Request $request) {
         try {
             $request->validate([
-                'provider' => 'string|required|in:google,facebook,x,linkedin-openid,github,gitlab,bitbucket,slack,slack-openid',
+                'provider' => 'string|required|in:google,linkedin-openid',
                 'web_origin' => 'string',
                 'target_path' => 'string',
             ]);
@@ -128,8 +128,8 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            if (! in_array($provider, ['google', 'facebook', 'x', 'linkedin-openid', 'github', 'gitlab', 'bitbucket', 'slack', 'slack-openid'])) {
-                return response()->json("Provider not found.", 403);
+            if (! in_array($provider, ['google', 'facebook', 'x', 'linkedin-openid',])) {
+                return response()->json("Provider not found or not used.", 403);
             }
 
             $socialUser = Socialite::driver($provider)->stateless()->user();
