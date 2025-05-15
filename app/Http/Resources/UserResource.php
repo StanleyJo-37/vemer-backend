@@ -14,13 +14,11 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // $s3 = Storage::disk('s3');
         return [
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
             'profile_photo_path' => $this->profile_photo_path ?? "",
-            // 'token' => $this->token,
         ];
     }
 }
