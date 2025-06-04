@@ -68,7 +68,7 @@ class ActivityController extends Controller
 
             return response()->json($activities);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
 
@@ -108,13 +108,13 @@ class ActivityController extends Controller
 
             $thumbnail = AssetController::getAsset($activity->id, Activity::class, 'Thumbnail');
             $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);
-            
+
             return response()->json($activity);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
-    
+
     // Auth
     public function enroll(Request $request, int $id) {
         try {
@@ -138,7 +138,7 @@ class ActivityController extends Controller
 
             return response()->json($registration_id);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
 }
