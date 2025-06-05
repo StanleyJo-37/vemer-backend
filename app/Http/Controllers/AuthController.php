@@ -16,7 +16,7 @@ class AuthController extends Controller
     //
     /**
      * Create a new Sanctum token.
-     * 
+     *
      * @return \Illuminate\Cookie\CookieJar|\Symfony\Component\HttpFoundation\Cookie
      */
     private function createToken(User $user): \Illuminate\Cookie\CookieJar|\Symfony\Component\HttpFoundation\Cookie
@@ -28,9 +28,9 @@ class AuthController extends Controller
         )->plainTextToken;
 
         $user->token = $token;
-        
+
         $cookie = cookie(
-            'sinau_rek_token',
+            'vemer_token',
             $token,
             config('session.lifetime')
         );
@@ -69,7 +69,7 @@ class AuthController extends Controller
     }
 
     public function login(LoginRequest $request)
-    {  
+    {
         try {
             $user = $request->authenticate();
 

@@ -78,6 +78,9 @@ class LeaderboardController extends Controller
             } else {
                 // categorical total active user
             }
+
+
+            // return number/int
         } catch (Exception $e){
             throw $e;
         }
@@ -91,6 +94,9 @@ class LeaderboardController extends Controller
             } else {
                 // categorical total points earned
             }
+
+
+            // return number/int
         } catch (Exception $e){
             throw $e;
         }
@@ -105,6 +111,8 @@ class LeaderboardController extends Controller
             } else {
                 // categorical total events completed
             }
+
+            // return number/int
         } catch (Exception $e){
             throw $e;
         }
