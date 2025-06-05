@@ -10,7 +10,6 @@ class LeaderboardController extends Controller
 {
     public function getLeaderboard(Request $request){
         try{
-
             $pointsSubquery = DB::table('user_awarded_points')
                 ->join('user_points', 'user_awarded_points.user_point_id', '=', 'user_points.id')
                 ->select(
@@ -73,11 +72,24 @@ class LeaderboardController extends Controller
     public function totalActiveUser(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            // Base query to count distinct users who have participated in activities
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->join('users', 'activity_participants.user_id', '=', 'users.id')
+                ->distinct()
+                ->select(DB::raw('COUNT(DISTINCT activity_participants.user_id) as total_active_users'));
+
+            if($category == "all"){
+                // Count all active users across all categories
+                $totalActiveUsers = $query->count('activity_participants.user_id');
             } else {
-                // categorical total active user
+                // Count active users for a specific category (activity_type)
+                $totalActiveUsers = $query
+                    ->where('activities.activity_type', $category)
+                    ->count('activity_participants.user_id');
             }
+
+            return response()->json($totalActiveUsers);
         } catch (Exception $e){
             throw $e;
         }
