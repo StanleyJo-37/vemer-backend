@@ -55,9 +55,8 @@ class AuthController extends Controller
 
             $cookie = $this->createToken($user);
 
-            return response()
-                    ->json(new UserResource($user))
-                    ->withCookie($cookie);
+            return response()->json(new UserResource($user))
+                            ->withCookie($cookie);
         } catch (Exception $e) {
             throw $e;
         }
@@ -76,9 +75,8 @@ class AuthController extends Controller
 
             $cookie = $this->createToken($user);
 
-            return response()
-                    ->json(new UserResource($user))
-                    ->withCookie($cookie);
+            return response()->json(new UserResource($user))
+                            ->withCookie($cookie);
         }
         catch (Exception $e) {
             throw $e;
@@ -146,9 +144,8 @@ class AuthController extends Controller
                         </script>
                     ";
 
-            return response($script, 200)
-                    ->header('Content-Type', 'text/html')
-                    ->withCookie($cookie);
+            return response($script, 200)->header('Content-Type', 'text/html')
+                                        ->withCookie($cookie);
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
