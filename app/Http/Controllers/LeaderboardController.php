@@ -10,14 +10,12 @@ class LeaderboardController extends Controller
 {
     public function getLeaderboard(Request $request){
         try{
-            $pointsSubquery = DB::table('user_awarded_points')
-                ->join('user_points', 'user_awarded_points.user_point_id', '=', 'user_points.id')
+            $pointsSubquery = DB::table('user_points')
                 ->select(
-                    'user_awarded_points.user_id',
-                    DB::raw('SUM(user_points.value) as total_points_sum')
+                    'user_points.user_id',
+                    DB::raw('SUM(user_points.point) as total_points_sum')
                 )
-                ->where('user_points.is_active', true)
-                ->groupBy('user_awarded_points.user_id');
+                ->groupBy('user_points.user_id');
 
             // Subquery to count distinct activities attended by each user
             $activitiesSubquery = DB::table('activity_participants')
