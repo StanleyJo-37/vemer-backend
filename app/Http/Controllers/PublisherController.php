@@ -22,7 +22,7 @@ class PublisherController extends Controller
                     ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
                     ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'Publisher')
+                    ->where('roles.name', 'publisher')
                     ->distinct()
                     ->count('activities.id');
 
@@ -48,7 +48,7 @@ class PublisherController extends Controller
                     ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
                     ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'Publisher')
+                    ->where('roles.name', 'publisher')
                     ->distinct()
                     ->pluck('activity_participants.activity_id');
 
@@ -76,7 +76,7 @@ class PublisherController extends Controller
                     ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
                     ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'Publisher')
+                    ->where('roles.name', 'publisher')
                     ->distinct()
                     ->pluck('activity_participants.activity_id');
 
@@ -107,7 +107,7 @@ class PublisherController extends Controller
                     ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
                     ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'Publisher')
+                    ->where('roles.name', 'publisher')
                     ->distinct()
                     ->pluck('activity_participants.activity_id');
 
@@ -139,7 +139,7 @@ class PublisherController extends Controller
                     ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
                     ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'Publisher')
+                    ->where('roles.name', 'publisher')
                     ->distinct()
                     ->pluck('activity_participants.activity_id');
 
