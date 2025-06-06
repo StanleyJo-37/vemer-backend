@@ -117,6 +117,7 @@ class AuthController extends Controller
                 ['email' => $socialUser->getEmail()],
                 [
                     'name' => $socialUser->getName(),
+                    'username' => $socialUser->getName(),
                     'email_verified_at' => now(),
                     'password' => bcrypt(uniqid()),
                     'avatar' => $socialUser->getAvatar(),
