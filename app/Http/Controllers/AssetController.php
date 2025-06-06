@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class AssetController extends Controller
 {
     //
-    public function getAsset(int $model_id, string $asset_type, bool $singleAsset = true) {
+    public static function getAsset(int $model_id, string $asset_type, bool $singleAsset = true) {
         try {
             $assets = AssetRelation::query()
                                     ->select([
@@ -48,7 +48,7 @@ class AssetController extends Controller
         }
     }
 
-    public function uploadAsset(UploadedFile $file, string $path, int $model_id, string $model_type, string $asset_type) {
+    public static function uploadAsset(UploadedFile $file, string $path, int $model_id, string $model_type, string $asset_type) {
         try {
             $storage = Storage::disk('supabase');
             $fileName = time() . '_' . $file->getClientOriginalName();
