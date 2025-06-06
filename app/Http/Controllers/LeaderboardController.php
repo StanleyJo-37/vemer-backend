@@ -98,10 +98,20 @@ class LeaderboardController extends Controller
     public function totalPointsEarned(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->join('users', 'activity_participants.user_id', '=', 'users.id')
+                ->join('user_points', 'user_points.user_id', '=', 'users.id');
+
+            if($category == "all"){
+                $totalPoints = $query->sum('user_points.point');
+
+                return response()->json($totalPoints);
             } else {
-                // categorical total points earned
+                $totalPointsCategory = $query->where('activities.activity_type', $category)
+                    ->sum('user_points.point');
+
+                return response()->json($totalPointsCategory);
             }
         } catch (Exception $e){
             throw $e;
@@ -112,10 +122,17 @@ class LeaderboardController extends Controller
     public function totalEventsCompleted(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id');
+            if($category == "all"){
+                $totalEvents = $query->count('activity_participants.activity_id');
+
+                return response()->json($totalEvents);
             } else {
-                // categorical total events completed
+                $totalEventsCategory = $query->where('activities.activity_type', $category)
+                    ->count('activity_participants.activity_id');
+
+                return response()->json($totalEventsCategory);
             }
         } catch (Exception $e){
             throw $e;
