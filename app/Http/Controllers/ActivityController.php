@@ -60,8 +60,8 @@ class ActivityController extends Controller
                                 $query->where('a.end_date', '<=', $request->end_date);
                             })
                             ->where('a.status', 1)
-                            ->where('a.start_date', '<=', Carbon::now())
-                            ->where('a.end_date', '>=', Carbon::now())
+                            // ->where('a.start_date', '<=', Carbon::now())
+                            // ->where('a.end_date', '>=', Carbon::now())
                             ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug');
 
             $activities = $request->has('per_page') ? $activities->paginate($request->per_page) : $activities->get();
