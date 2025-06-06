@@ -32,6 +32,7 @@ class RegisterRequest extends FormRequest
             'name' => 'string|min:8|alpha_num|required',
             'username' => 'string|min:8|max:24|alpha_num|required',
             'profile_photo_path' => 'string|nullable',
+            'is_publisher' => ['sometimes', 'boolean'],
             'remember' => 'boolean',
         ];
     }
@@ -48,7 +49,7 @@ class RegisterRequest extends FormRequest
 
     /**
      * Register a new user.
-     * 
+     *
      * @return ?User
      */
     public function register(): ?User
@@ -61,11 +62,12 @@ class RegisterRequest extends FormRequest
                 'password' => Hash::make($credentials['password']),
                 'name' => $credentials['name'],
                 'username' => $credentials['username'],
+                'is_publisher' => $credentials['is_publisher'] ?? false,
                 'profile_photo_path' => array_key_exists('profile_photo_path', $credentials) ? $credentials['profile_photo_path'] : null,
             ]);
 
             Auth::login($user, $this->boolean('remember'));
-            
+
             return $user;
         }
         catch (Exception $e) {

@@ -47,7 +47,7 @@ class AuthController extends Controller
 
             $user = $request->register();
 
-            if (! $user) {
+            if (!$user) {
                 return response()->json([
                     'message' => 'Failed to register. Please try again later.',
                 ], 401);
