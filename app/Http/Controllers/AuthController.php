@@ -107,7 +107,7 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            if (! in_array($provider, ['google', 'facebook', 'x', 'linkedin-openid',])) {
+            if (! in_array($provider, ['google', 'linkedin-openid',])) {
                 return response()->json("Provider not found or not used.", 403);
             }
 
