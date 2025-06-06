@@ -61,7 +61,11 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
             Route::get('/total-notifications', [PublisherController::class, 'totalNotifications']);
             // get activity paginate (also get count of participant that is pending)
             // create activity
+            Route::post('/create-activity', [PublisherController::class, 'createActivity']);
+            // create badge
+            Route::post('/create-badge', [PublisherController::class, 'createBadge']);
             // handle upload image
+            Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
             // approve and unapprove participants
