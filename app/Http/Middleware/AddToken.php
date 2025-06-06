@@ -18,7 +18,7 @@ class AddToken
         // $request->getBasePath();
 
         if (! $request->hasHeader('Authorization')) {
-            $token = $request->cookie('sinau_rek_token');
+            $token = $request->cookie('vemer_token');
             $request->headers->set('Authorization', "Bearer $token");
         }
         return $next($request);
