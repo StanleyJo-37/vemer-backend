@@ -19,6 +19,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'profile_photo_path' => $this->profile_photo_path ?? "",
+            'is_publisher' => $this->is_publisher
         ];
     }
 }
