@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class PublisherController extends Controller
 {
     public function totalActivities(Request $request){
-        $user_id = request()->user()->id;
+        $user_id = $request->user()->id;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -36,7 +36,7 @@ class PublisherController extends Controller
         }
     }
     public function totalParticipants(Request $request){
-        $user_id = request()->user()->id;
+        $user_id = $request->user()->id;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -64,7 +64,7 @@ class PublisherController extends Controller
         }
     }
     public function totalNotifications(Request $request){
-        $user_id = request()->user()->id;
+        $user_id = $request->user()->id;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -95,7 +95,7 @@ class PublisherController extends Controller
         }
     }
     public function getActivities(Request $request){
-        $user_id = request()->user()->id;
+        $user_id = $request->user()->id;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -127,7 +127,7 @@ class PublisherController extends Controller
     }
     public function uploadImage(Request $request){}
     public function getNotifications(Request $request){
-        $user_id = request()->user()->id;
+        $user_id = $request->user()->id;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -156,5 +156,18 @@ class PublisherController extends Controller
             throw $e;
         }
     }
-    public function approveParticipants(Request $request){}
+    public function approveParticipants(Request $request){
+        $user_id = $request->user_id;
+        $activity_id = $request->activity_id;
+        $status = $request->status;
+        try {
+            // tolong ditambahin attribute status ke tabel activity_participants
+            $query = DB::table("activity_participants")
+                ->where("user_id", $user_id)
+                ->where("activity_id", $activity_id)
+                ->update(["status" => $status]);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
 }
