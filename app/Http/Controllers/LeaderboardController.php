@@ -121,7 +121,8 @@ class LeaderboardController extends Controller
         $category = $request->category;
         try{
             $query = DB::table('activity_participants')
-                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id');
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->where('activities.end_date', '<=', DB::raw('NOW()'));
             if($category == "all"){
                 $totalEvents = $query->count('activity_participants.activity_id');
 
