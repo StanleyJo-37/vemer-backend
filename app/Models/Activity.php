@@ -12,6 +12,7 @@ class Activity extends Model
     protected $table = 'activities';
 
     protected $fillable = [
+        'id',
         'name',
         'slug',
         'description',
@@ -19,6 +20,7 @@ class Activity extends Model
         'role_group_id',
         'start_date',
         'end_date',
+        'status',
     ];
 
     // public function users(): HasOneOrManyThrough {

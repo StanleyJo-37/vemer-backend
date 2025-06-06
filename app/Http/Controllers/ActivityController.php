@@ -60,15 +60,15 @@ class ActivityController extends Controller
                                 $query->where('a.end_date', '<=', $request->end_date);
                             })
                             ->where('a.status', 1)
-                            ->where('a.start_date', '<=', Carbon::now())
-                            ->where('a.end_date', '>=', Carbon::now())
+                            // ->where('a.start_date', '<=', Carbon::now())
+                            // ->where('a.end_date', '>=', Carbon::now())
                             ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug');
 
             $activities = $request->has('per_page') ? $activities->paginate($request->per_page) : $activities->get();
 
             return response()->json($activities);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
 
@@ -108,13 +108,13 @@ class ActivityController extends Controller
 
             $thumbnail = AssetController::getAsset($activity->id, Activity::class, 'Thumbnail');
             $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);
-            
+
             return response()->json($activity);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
-    
+
     // Auth
     public function enroll(Request $request, int $id) {
         try {
@@ -138,7 +138,7 @@ class ActivityController extends Controller
 
             return response()->json($registration_id);
         } catch (Exception $e) {
-            return response()->json($e->getMessage(), 500);
+            throw $e;
         }
     }
 }
