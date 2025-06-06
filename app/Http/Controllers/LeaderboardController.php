@@ -8,62 +8,30 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
-    public function getLeaderboard(Request $request){
-        try{
-            $pointsSubquery = DB::table('user_awarded_points')
-                ->join('user_points', 'user_awarded_points.user_point_id', '=', 'user_points.id')
-                ->select(
-                    'user_awarded_points.user_id',
-                    DB::raw('SUM(user_points.value) as total_points_sum')
-                )
-                ->where('user_points.is_active', true)
-                ->groupBy('user_awarded_points.user_id');
+    public function getLeaderboard(int $leaderboard_id, Request $request){
+        try {
+            $request->validate([
+                'per_page' => 'required|integer',
+            ]);
 
-            // Subquery to count distinct activities attended by each user
-            $activitiesSubquery = DB::table('activity_participants')
-                ->select(
-                    'user_id',
-                    // Assuming you want to count each distinct activity a user participated in.
-                    // If multiple entries for the same activity by the same user should count multiple times, use COUNT(id)
-                    DB::raw('COUNT(DISTINCT activity_id) as activities_attended_count')
-                )
-                ->groupBy('user_id');
+            $leaderboard = DB::table('leaderboards as l')
+                                ->select([
+                                    'l.id',
+                                    'l.name',
+                                    'u.id',
+                                    'u.name',
+                                    DB::raw('SUM(up.point) as points')
+                                ])
+                                ->join('user_points as up', function ($join) {
+                                    $join->on('up.leaderboard_id', '=', 'l.id')
+                                        ->where('l.is_active', true);
+                                })
+                                ->join('users as u', 'u.id', '=', 'up.id')
+                                ->where('l.id', $leaderboard_id)
+                                ->sortBy("points", "ASC")
+                                ->paginate($request->per_page);
 
-            $leaderboardQuery = DB::table('users')
-                ->leftJoinSub($pointsSubquery, 'points_data', function ($join) {
-                    $join->on('users.id', '=', 'points_data.user_id');
-                })
-                ->leftJoinSub($activitiesSubquery, 'activities_data', function ($join) {
-                    $join->on('users.id', '=', 'activities_data.user_id');
-                })
-                ->select(
-                    'users.id',
-                    'users.name',
-                    'users.profile_photo_path as avatar', // From your 'users' table schema
-                    DB::raw('COALESCE(points_data.total_points_sum, 0) as points'),
-                    DB::raw('COALESCE(activities_data.activities_attended_count, 0) as activitiesAttended'),
-                    DB::raw('RANK() OVER (ORDER BY COALESCE(points_data.total_points_sum, 0) DESC) as rank'),
-                    DB::raw("
-                        CASE
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 5000 THEN 'Sigma'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 1000 THEN 'Alpha'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 500 THEN 'Gold'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 100 THEN 'Silver'
-                            ELSE 'Bronze'
-                        END as level
-                    ")
-                )
-                ->orderBy('rank', 'asc') // Primary sort: by calculated rank
-                ->orderBy('points', 'desc') // Secondary sort: by points (for tie-breaking within the same rank if needed by specific RANK behavior)
-                ->orderBy('users.name', 'asc'); // Tertiary sort: by user's name for further tie-breaking
-
-            // Fetch the results
-            // You might want to paginate or limit the results for large leaderboards
-            // For example: $topUsers = $leaderboardQuery->paginate(25);
-            // Or: $topUsers = $leaderboardQuery->limit(100)->get();
-            $topUsers = $leaderboardQuery->get();
-
-            return response()->json($topUsers);
+            return response()->json($leaderboard);
         } catch (Exception $e){
             throw $e;
         }
