@@ -18,17 +18,44 @@ class LeaderboardController extends Controller
                                 ->select([
                                     'l.id',
                                     'l.name',
-                                    'u.id',
-                                    'u.name',
-                                    DB::raw('SUM(up.point) as points')
+                                    DB::raw("(
+                                        SELECT JSON_AGG(
+                                            JSON_BUILD_OBJECT(
+                                                'id', u.id, 
+                                                'username', u.username,
+                                                'points', user_points.total_points,
+                                                'level', CASE
+                                                    WHEN user_points.total_points >= 5000 THEN 'Sigma'
+                                                    WHEN user_points.total_points >= 1000 THEN 'Alpha'
+                                                    WHEN user_points.total_points >= 500 THEN 'Gold'
+                                                    WHEN user_points.total_points >= 100 THEN 'Silver'
+                                                    ELSE 'Bronze'
+                                                END
+                                            )
+                                            ORDER BY user_points.total_points DESC
+                                        )
+                                        FROM (
+                                            SELECT up.user_id, SUM(up.point) as total_points
+                                            FROM user_points up
+                                            WHERE up.leaderboard_id = l.id
+                                            GROUP BY up.user_id
+                                        ) as user_points
+                                        JOIN users u ON u.id = user_points.user_id
+                                    ) AS ranking"),
+                                    DB::raw("(
+                                        SELECT JSON_AGG(
+                                            JSON_BUILD_OBJECT(
+                                                'id', a.id,
+                                                'name', a.name
+                                            )
+                                        )
+                                        FROM activities as a
+                                        JOIN leaderboard_activity as la ON la.activity_id = a.id
+                                        WHERE la.leaderboard_id = l.id
+                                    ) AS activities"),
                                 ])
-                                ->join('user_points as up', function ($join) {
-                                    $join->on('up.leaderboard_id', '=', 'l.id')
-                                        ->where('l.is_active', true);
-                                })
-                                ->join('users as u', 'u.id', '=', 'up.id')
                                 ->where('l.id', $leaderboard_id)
-                                ->sortBy("points", "ASC")
+                                ->where('l.is_active', true)
                                 ->paginate($request->per_page);
 
             return response()->json($leaderboard);
@@ -66,10 +93,20 @@ class LeaderboardController extends Controller
     public function totalPointsEarned(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->join('users', 'activity_participants.user_id', '=', 'users.id')
+                ->join('user_points', 'user_points.user_id', '=', 'users.id');
+
+            if($category == "all"){
+                $totalPoints = $query->sum('user_points.point');
+
+                return response()->json($totalPoints);
             } else {
-                // categorical total points earned
+                $totalPointsCategory = $query->where('activities.activity_type', $category)
+                    ->sum('user_points.point');
+
+                return response()->json($totalPointsCategory);
             }
         } catch (Exception $e){
             throw $e;
@@ -80,10 +117,18 @@ class LeaderboardController extends Controller
     public function totalEventsCompleted(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->where('activities.end_date', '<=', DB::raw('NOW()'));
+            if($category == "all"){
+                $totalEvents = $query->count('activity_participants.activity_id');
+
+                return response()->json($totalEvents);
             } else {
-                // categorical total events completed
+                $totalEventsCategory = $query->where('activities.activity_type', $category)
+                    ->count('activity_participants.activity_id');
+
+                return response()->json($totalEventsCategory);
             }
         } catch (Exception $e){
             throw $e;
