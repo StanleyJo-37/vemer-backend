@@ -13,7 +13,7 @@ Route::prefix('/public')->group(function () {
         Route::prefix('/login')->group(function() {
             Route::post('/', [AuthController::class, 'login']);
             Route::post('/sso', [AuthController::class, 'loginSSO']);
-            Route::post('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
+            Route::get('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
         });
     });
 });
