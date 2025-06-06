@@ -130,11 +130,24 @@ class AuthController extends Controller
 
             DB::commit();
 
-            return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Login Successful.',
-                    ])
+            parse_str($request->query('state', ''), $state);
+            $targetPath = $state['target_path'] ?? '/dashboard';
+            $webOrigin = $state['web_origin'] ?? 'http://localhost:3000';
+
+            $userResource = new UserResource($user);
+            $script = "
+                        <script>
+                            window.opener.postMessage({
+                                user: " . json_encode($userResource) . ",
+                                targetPath: " . json_encode($targetPath) . ",
+                                error: null
+                            }, '*');
+                            window.close();
+                        </script>
+                    ";
+
+            return response($script, 200)
+                    ->header('Content-Type', 'text/html')
                     ->withCookie($cookie);
         } catch (Exception $e) {
             DB::rollBack();
