@@ -30,7 +30,7 @@ class AuthController extends Controller
         $user->token = $token;
         
         $cookie = cookie(
-            'sinau_rek_token',
+            'vemer_token',
             $token,
             config('session.lifetime')
         );
@@ -41,6 +41,10 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         try {
+            if (User::where('email', $request->email)->exists()) {
+                abort(422, "User already exists.");
+            }
+
             $user = $request->register();
 
             if (! $user) {
@@ -52,19 +56,10 @@ class AuthController extends Controller
             $cookie = $this->createToken($user);
 
             return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Registeration Successful.',
-                    ])
+                    ->json(new UserResource($user))
                     ->withCookie($cookie);
         } catch (Exception $e) {
-            return response()->json(
-                [
-                    'message' => 'Error registering. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -82,20 +77,11 @@ class AuthController extends Controller
             $cookie = $this->createToken($user);
 
             return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Login Successful.',
-                    ])
+                    ->json(new UserResource($user))
                     ->withCookie($cookie);
         }
         catch (Exception $e) {
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -103,8 +89,8 @@ class AuthController extends Controller
         try {
             $request->validate([
                 'provider' => 'string|required|in:google,linkedin-openid',
-                'web_origin' => 'string',
-                'target_path' => 'string',
+                // 'web_origin' => 'string',
+                // 'target_path' => 'string',
             ]);
 
             $oauthUrl = Socialite::driver($request->provider)->stateless()->redirect()->getTargetUrl();
@@ -113,14 +99,7 @@ class AuthController extends Controller
                 'redirect_url' => $oauthUrl . "&state=" . urlencode("web_origin=$request->web_origin&target_path=$request->target_path"),
             ]);
         } catch (Exception $e) {
-            // DB::rollBack();
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -135,12 +114,12 @@ class AuthController extends Controller
             $socialUser = Socialite::driver($provider)->stateless()->user();
 
             $user = User::updateOrCreate(
-                ['email' => $socialUser->getEmail()],  // Search by email
+                ['email' => $socialUser->getEmail()],
                 [
                     'name' => $socialUser->getName(),
-                    'email_verified_at' => now(), // Mark email as verified
-                    'password' => bcrypt(uniqid()), // Random password (not used)
-                    'avatar' => $socialUser->getAvatar(), // If your model has an avatar field
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(uniqid()),
+                    'avatar' => $socialUser->getAvatar(),
                     'provider' => $request->provider,
                     'provider_id' => $socialUser->getId(),
                 ]
@@ -158,13 +137,7 @@ class AuthController extends Controller
                     ->withCookie($cookie);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 }
