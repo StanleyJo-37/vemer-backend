@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class AssetController extends Controller
 {
     //
-    public static function getAsset(int $model_id, string $model_type, ?string $asset_type = null, bool $singleAsset = true) {
+    public static static function getAsset(int $model_id, string $model_type, ?string $asset_type = null, bool $singleAsset = true) {
         try {
             $assets = AssetRelation::query()
                                     ->select([

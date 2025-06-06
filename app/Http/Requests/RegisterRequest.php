@@ -29,7 +29,8 @@ class RegisterRequest extends FormRequest
             //
             'email' => 'email|required',
             'password' => 'string|min:8|required',
-            'name' => 'string|min:8|max:24|alpha_num|required',
+            'name' => 'string|min:8|alpha_num|required',
+            'username' => 'string|min:8|max:24|alpha_num|required',
             'profile_photo_path' => 'string|nullable',
             'remember' => 'boolean',
         ];
@@ -42,7 +43,7 @@ class RegisterRequest extends FormRequest
      */
     public function credentials(): array
     {
-        return $this->only('email', 'password', 'name', 'profile_photo_path');
+        return $this->only('email', 'password', 'name', 'username', 'profile_photo_path');
     }
 
     /**
@@ -59,6 +60,7 @@ class RegisterRequest extends FormRequest
                 'email' => $credentials['email'],
                 'password' => Hash::make($credentials['password']),
                 'name' => $credentials['name'],
+                'username' => $credentials['username'],
                 'profile_photo_path' => array_key_exists('profile_photo_path', $credentials) ? $credentials['profile_photo_path'] : null,
             ]);
 
@@ -67,8 +69,7 @@ class RegisterRequest extends FormRequest
             return $user;
         }
         catch (Exception $e) {
-            dd($e);
-            return null;
+            throw $e;
         }
     }
 }

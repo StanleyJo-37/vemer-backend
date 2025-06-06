@@ -30,7 +30,7 @@ class AuthController extends Controller
         $user->token = $token;
         
         $cookie = cookie(
-            'sinau_rek_token',
+            'vemer_token',
             $token,
             config('session.lifetime')
         );
@@ -41,6 +41,10 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         try {
+            if (User::where('email', $request->email)->exists()) {
+                abort(422, "User already exists.");
+            }
+
             $user = $request->register();
 
             if (! $user) {
@@ -51,20 +55,10 @@ class AuthController extends Controller
 
             $cookie = $this->createToken($user);
 
-            return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Registeration Successful.',
-                    ])
-                    ->withCookie($cookie);
+            return response()->json(new UserResource($user))
+                            ->withCookie($cookie);
         } catch (Exception $e) {
-            return response()->json(
-                [
-                    'message' => 'Error registering. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -81,21 +75,11 @@ class AuthController extends Controller
 
             $cookie = $this->createToken($user);
 
-            return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Login Successful.',
-                    ])
-                    ->withCookie($cookie);
+            return response()->json(new UserResource($user))
+                            ->withCookie($cookie);
         }
         catch (Exception $e) {
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -103,8 +87,8 @@ class AuthController extends Controller
         try {
             $request->validate([
                 'provider' => 'string|required|in:google,linkedin-openid',
-                'web_origin' => 'string',
-                'target_path' => 'string',
+                // 'web_origin' => 'string',
+                // 'target_path' => 'string',
             ]);
 
             $oauthUrl = Socialite::driver($request->provider)->stateless()->redirect()->getTargetUrl();
@@ -113,14 +97,7 @@ class AuthController extends Controller
                 'redirect_url' => $oauthUrl . "&state=" . urlencode("web_origin=$request->web_origin&target_path=$request->target_path"),
             ]);
         } catch (Exception $e) {
-            // DB::rollBack();
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 
@@ -128,19 +105,20 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            if (! in_array($provider, ['google', 'facebook', 'x', 'linkedin-openid',])) {
+            if (! in_array($provider, ['google', 'linkedin-openid',])) {
                 return response()->json("Provider not found or not used.", 403);
             }
 
             $socialUser = Socialite::driver($provider)->stateless()->user();
 
             $user = User::updateOrCreate(
-                ['email' => $socialUser->getEmail()],  // Search by email
+                ['email' => $socialUser->getEmail()],
                 [
                     'name' => $socialUser->getName(),
-                    'email_verified_at' => now(), // Mark email as verified
-                    'password' => bcrypt(uniqid()), // Random password (not used)
-                    'avatar' => $socialUser->getAvatar(), // If your model has an avatar field
+                    'username' => $socialUser->getName(),
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(uniqid()),
+                    'avatar' => $socialUser->getAvatar(),
                     'provider' => $request->provider,
                     'provider_id' => $socialUser->getId(),
                 ]
@@ -150,21 +128,27 @@ class AuthController extends Controller
 
             DB::commit();
 
-            return response()
-                    ->json([
-                        'user' => new UserResource($user),
-                        'message' => 'Login Successful.',
-                    ])
-                    ->withCookie($cookie);
+            parse_str($request->query('state', ''), $state);
+            $targetPath = $state['target_path'] ?? '/dashboard';
+            $webOrigin = $state['web_origin'] ?? 'http://localhost:3000';
+
+            $userResource = new UserResource($user);
+            $script = "
+                        <script>
+                            window.opener.postMessage({
+                                user: " . json_encode($userResource) . ",
+                                targetPath: " . json_encode($targetPath) . ",
+                                error: null
+                            }, '*');
+                            window.close();
+                        </script>
+                    ";
+
+            return response($script, 200)->header('Content-Type', 'text/html')
+                                        ->withCookie($cookie);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(
-                [
-                    'message' => 'Error logging in. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
+            throw $e;
         }
     }
 }
