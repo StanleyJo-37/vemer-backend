@@ -54,11 +54,10 @@ class User extends Authenticatable
     public function getRole()
     {
         return DB::table('roles as r')
-        ->select('r.name')
-        ->join('user_roles as ur', function ($join) {
-            $join->on('ur.role_id', '=', 'r.id')
-                    ->where('ur.user_id', $this->id);
-        })
-        ->first();
+                ->join('user_roles as ur', function ($join) {
+                    $join->on('ur.role_id', '=', 'r.id')
+                            ->where('ur.user_id', $this->id);
+                })
+                ->value('r.name');
     }
 }
