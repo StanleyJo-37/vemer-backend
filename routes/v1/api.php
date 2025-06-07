@@ -30,7 +30,7 @@ Route::prefix('/public')->group(function () {
 });
 
 //
-Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+Route::prefix('/auth')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
@@ -64,6 +64,10 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
             // get activity paginate (also get count of participant that is pending)
             // create activity
             Route::post('/create-activity', [PublisherController::class, 'createActivity']);
+            // create registration popup info
+            Route::post('/create-register-popup-info', [PublisherController::class, 'createRegistrationPopupInfo']);
+            // create activity with badges and registration popup at the same time
+            Route::post('/create-activity-popup-badge', [PublisherController::class, 'createActivityWithBadgeAndPopup']);
             // create badge
             Route::post('/create-badge', [PublisherController::class, 'createBadge']);
             // handle upload image
