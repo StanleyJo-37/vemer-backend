@@ -563,10 +563,6 @@ class PublisherController extends Controller
                 }
             }
 
-
-            Log::info('EEROROOROOROORORO ' . $request->badge_exist );
-            Log::info('Does badge_exist? ' . gettype($request->badge_exist));
-
             // 7. NEW: Create Registration Popup Info (if requested)
             if ($validatedData['popup_exist']) {
                 $popup_info_id = DB::table('registration_popup_info')->insertGetId([
@@ -611,6 +607,21 @@ class PublisherController extends Controller
                 ->update(["status" => $status]);
         } catch (Exception $e) {
             throw $e;
+        }
+    }
+
+    public function getAllActivites(Request $request){
+        $user_id = 18;
+        $activities = DB::table('activities')
+            ->join("activity_participants", "activities.id", "=", "activity_participants.activity_id")
+            ->where("activity_participants.user_id", $user_id)
+            ->select("activities.*")
+            ->get();
+
+        if($activities){
+            return response()->json($activities);
+        } else{
+            return response()->json([]);
         }
     }
 }

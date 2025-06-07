@@ -55,6 +55,7 @@ Route::prefix('/auth')->group(function () {
         });
 
         Route::prefix("/publisher")->group(function (){
+            Route::get('/activities', [PublisherController::class, 'getAllActivites']);
             // get total activies hosted
             Route::get('/total-activities', [PublisherController::class, 'totalActivities']);
             // get total participant participated (count of user's approved)
