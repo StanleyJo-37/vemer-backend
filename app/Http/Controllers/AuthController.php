@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -55,6 +56,8 @@ class AuthController extends Controller
 
             $cookie = $this->createToken($user);
 
+            Auth::login($user);
+
             return response()->json(new UserResource($user))
                             ->withCookie($cookie);
         } catch (Exception $e) {
@@ -74,6 +77,8 @@ class AuthController extends Controller
             }
 
             $cookie = $this->createToken($user);
+
+            Auth::login($user);
 
             return response()->json(new UserResource($user))
                             ->withCookie($cookie);
@@ -125,6 +130,8 @@ class AuthController extends Controller
             );
 
             $cookie = $this->createToken($user);
+
+            Auth::login($user);
 
             DB::commit();
 
