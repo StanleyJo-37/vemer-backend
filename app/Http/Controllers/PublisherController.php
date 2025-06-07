@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\AssetController;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\AssetController;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -128,16 +128,16 @@ class PublisherController extends Controller
     }
     public function createActivity(Request $request){
         try {
-            // di tabel activities perlu ditambahin bbrp column lagi, seperti about, what_will_you_get, location, point_reward
+            // di tabel activities perlu ditambahin bbrp column lagi, seperti location, point_reward
             // Validate the request
             $request->validate([
                 'title' => 'required|string|max:255',
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'about' => 'required|string',
-                'what_will_you_get' => 'required|string',
+                'description' => 'required|string',
                 'category' => 'required|string',
                 'time' => 'required|string',
-                'date' => 'required|date',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date',
                 'location' => 'required|string',
                 'point_reward' => 'required|integer|min:0',
             ]);
@@ -162,19 +162,19 @@ class PublisherController extends Controller
             $slug = Str::slug($request->title);
 
             // Format the date and time
-            $start_date = Carbon::parse($request->date . ' ' . $request->time);
+            $start_date = Carbon::parse($request->start_date . ' ' . $request->time);
+            $end_date = Carbon::parse($request->end_date . ' ' . $request->time);
 
             // Create the activity
             $activity = DB::table('activities')->insertGetId([
                 'name' => $request->title,
                 'slug' => $slug,
-                'description' => $request->about,
-                'what_will_you_get' => $request->what_will_you_get,
+                'description' => $request->description,
                 'category' => $request->category,
                 'location' => $request->location,
                 'point_reward' => $request->point_reward,
                 'start_date' => $start_date,
-                'end_date' => $start_date->copy()->addHours(2), // Default to 2 hours duration
+                'end_date' => $end_date,
                 'status' => 1, // Active
                 'created_at' => now(),
                 'updated_at' => now(),
