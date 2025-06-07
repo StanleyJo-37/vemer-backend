@@ -55,6 +55,7 @@ Route::prefix('/auth')->group(function () {
         });
 
         Route::prefix("/publisher")->group(function (){
+            // get all publisher's activites
             Route::get('/activities', [PublisherController::class, 'getAllActivites']);
             // get total activies hosted
             Route::get('/total-activities', [PublisherController::class, 'totalActivities']);

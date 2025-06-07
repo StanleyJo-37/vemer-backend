@@ -16,7 +16,7 @@ use function PHPSTORM_META\type;
 class PublisherController extends Controller
 {
     public function totalActivities(Request $request){
-        $user_id = $request->user()->id;
+        $user_id = 18;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -26,10 +26,10 @@ class PublisherController extends Controller
             if ($isPublisher) {
                 $totalActivities = DB::table('activities')
                     ->join('activity_participants', 'activities.id', '=', 'activity_participants.activity_id')
-                    ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
-                    ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
+                    // ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
+                    // ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'publisher')
+                    // ->where('roles.name', 'publisher')
                     ->distinct()
                     ->count('activities.id');
 
