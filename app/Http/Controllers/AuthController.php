@@ -17,7 +17,7 @@ class AuthController extends Controller
     //
     /**
      * Create a new Sanctum token.
-     * 
+     *
      * @return \Illuminate\Cookie\CookieJar|\Symfony\Component\HttpFoundation\Cookie
      */
     private function createToken(User $user): \Illuminate\Cookie\CookieJar|\Symfony\Component\HttpFoundation\Cookie
@@ -29,7 +29,7 @@ class AuthController extends Controller
         )->plainTextToken;
 
         $user->token = $token;
-        
+
         $cookie = cookie(
             'vemer_token',
             $token,
@@ -48,7 +48,7 @@ class AuthController extends Controller
 
             $user = $request->register();
 
-            if (! $user) {
+            if (!$user) {
                 return response()->json([
                     'message' => 'Failed to register. Please try again later.',
                 ], 401);
@@ -66,7 +66,7 @@ class AuthController extends Controller
     }
 
     public function login(LoginRequest $request)
-    {  
+    {
         try {
             $user = $request->authenticate();
 
