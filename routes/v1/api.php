@@ -36,20 +36,18 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [ActivityController::class, 'getDetail']);
     });
 
-    Route::prefix("/dasboard")->group(function () {
+    Route::prefix("/dashboard")->group(function () {
         Route::prefix("/user")->group(function () {
-            Route::prefix('/user')->group(function () {
-                Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
-                Route::get('/total-points', [UserController::class, 'totalPoints']);
-                Route::get('/get-rank', [UserController::class, 'getRank']);
-                Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
-                Route::get('/announcements', [UserController::class, 'announcements']);
-                Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
-                Route::get('/recent-activities', [UserController::class, 'recentParticipation']);
-                Route::get('/badges', [UserController::class, 'badges']);
-                Route::get('/favourite-badges', [UserController::class, 'favouriteBadges']);
-                Route::post('/set-favourite-badges', [UserController::class, 'setFavouriteBadges']);
-            });
+            Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
+            Route::get('/total-points', [UserController::class, 'totalPoints']);
+            Route::get('/get-rank', [UserController::class, 'getRank']);
+            Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
+            Route::get('/announcements', [UserController::class, 'announcements']);
+            Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
+            Route::get('/recent-activities', [UserController::class, 'recentParticipation']);
+            Route::get('/badges', [UserController::class, 'badges']);
+            Route::get('/favourite-badges', [UserController::class, 'favouriteBadges']);
+            Route::post('/set-favourite-badges', [UserController::class, 'setFavouriteBadges']);
         });
 
         Route::prefix("/publisher")->group(function (){
