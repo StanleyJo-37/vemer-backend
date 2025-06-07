@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -27,10 +28,14 @@ Route::prefix('/public')->group(function () {
 });
 
 // Auth
-Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
         Route::get('/{id}', [ActivityController::class, 'getDetail']);
+    });
+
+    Route::prefix(('/dashboard'))->group(function () {
+        Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
     });
 });
