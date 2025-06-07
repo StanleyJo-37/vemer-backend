@@ -34,7 +34,10 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
-        Route::get('/{id}', [ActivityController::class, 'getDetail']);
+        Route::prefix('/{id}')->group(function (){
+            Route::get('/', [ActivityController::class, 'getDetail']);
+            Route::post('/enroll', [ActivityController::class, 'enroll']);
+        });
     });
 
     Route::prefix("/dashboard")->group(function () {
