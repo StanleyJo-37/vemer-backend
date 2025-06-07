@@ -8,57 +8,100 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
-    public function getLeaderboard(int $leaderboard_id, Request $request){
+    public function getLeaderboard(Request $request){
         try {
             $request->validate([
                 'per_page' => 'required|integer',
+                'category' => 'nullable|string',
             ]);
 
-            $leaderboard = DB::table('leaderboards as l')
-                                ->select([
-                                    'l.id',
-                                    'l.name',
-                                    DB::raw("(
-                                        SELECT JSON_AGG(
-                                            JSON_BUILD_OBJECT(
-                                                'id', u.id, 
-                                                'username', u.username,
-                                                'points', user_points.total_points,
-                                                'level', CASE
-                                                    WHEN user_points.total_points >= 5000 THEN 'Sigma'
-                                                    WHEN user_points.total_points >= 1000 THEN 'Alpha'
-                                                    WHEN user_points.total_points >= 500 THEN 'Gold'
-                                                    WHEN user_points.total_points >= 100 THEN 'Silver'
-                                                    ELSE 'Bronze'
-                                                END
-                                            )
-                                            ORDER BY user_points.total_points DESC
-                                        )
-                                        FROM (
-                                            SELECT up.user_id, SUM(up.point) as total_points
-                                            FROM user_points up
-                                            WHERE up.leaderboard_id = l.id
-                                            GROUP BY up.user_id
-                                        ) as user_points
-                                        JOIN users u ON u.id = user_points.user_id
-                                    ) AS ranking"),
-                                    DB::raw("(
-                                        SELECT JSON_AGG(
-                                            JSON_BUILD_OBJECT(
-                                                'id', a.id,
-                                                'name', a.name
-                                            )
-                                        )
-                                        FROM activities as a
-                                        JOIN leaderboard_activity as la ON la.activity_id = a.id
-                                        WHERE la.leaderboard_id = l.id
-                                    ) AS activities"),
-                                ])
-                                ->where('l.id', $leaderboard_id)
-                                ->where('l.is_active', true)
-                                ->paginate($request->per_page);
+            $category = $request->category;
 
-            return response()->json($leaderboard);
+            // Base query to get user points
+            $userPointsQuery = DB::table('user_points as up');
+
+            // If category is specified, filter by category first, then sum
+            if ($category && $category != "all") {
+                $userPointsQuery->join('activity_participants as ap', 'up.user_id', '=', 'ap.user_id')
+                    ->join('activities as a', 'a.id', '=', 'ap.activity_id')
+                    ->where('a.activity_type', $category)
+                    ->select('up.user_id', DB::raw('SUM(up.point) as total_points'))
+                    ->groupBy('up.user_id');
+            } else {
+                // If no category is specified, sum all points
+                $userPointsQuery->select('up.user_id', DB::raw('SUM(up.point) as total_points'))
+                    ->groupBy('up.user_id');
+            }
+
+            // Get all activities for the response
+            $activities = DB::table('activities as a')
+                ->select('a.id', 'a.name', 'a.activity_type')
+                ->when($category && $category != "all", function ($query) use ($category) {
+                    return $query->where('a.activity_type', $category);
+                })
+                ->get();
+
+            // Get the user rankings
+            $userPoints = $userPointsQuery->get();
+
+            // Map user points to include user details and level
+            $rankings = [];
+            foreach ($userPoints as $userPoint) {
+                $user = DB::table('users')->where('id', $userPoint->user_id)->first();
+                if ($user) {
+                    $level = 'Bronze';
+                    if ($userPoint->total_points >= 5000) {
+                        $level = 'Sigma';
+                    } elseif ($userPoint->total_points >= 1000) {
+                        $level = 'Alpha';
+                    } elseif ($userPoint->total_points >= 500) {
+                        $level = 'Gold';
+                    } elseif ($userPoint->total_points >= 100) {
+                        $level = 'Silver';
+                    }
+
+                    $rankings[] = [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'points' => $userPoint->total_points,
+                        'level' => $level
+                    ];
+                }
+            }
+
+            // Sort rankings by points in descending order
+            usort($rankings, function($a, $b) {
+                return $b['points'] - $a['points'];
+            });
+
+            // Paginate the results
+            $perPage = $request->per_page;
+            $page = $request->input('page', 1);
+            $offset = ($page - 1) * $perPage;
+
+            $paginatedRankings = array_slice($rankings, $offset, $perPage);
+
+            $result = [
+                'current_page' => (int)$page,
+                'data' => [
+                    [
+                        'ranking' => $paginatedRankings,
+                        'activities' => $activities
+                    ]
+                ],
+                'first_page_url' => url()->current() . '?page=1',
+                'from' => $offset + 1,
+                'last_page' => ceil(count($rankings) / $perPage),
+                'last_page_url' => url()->current() . '?page=' . ceil(count($rankings) / $perPage),
+                'next_page_url' => $page < ceil(count($rankings) / $perPage) ? url()->current() . '?page=' . ($page + 1) : null,
+                'path' => url()->current(),
+                'per_page' => $perPage,
+                'prev_page_url' => $page > 1 ? url()->current() . '?page=' . ($page - 1) : null,
+                'to' => min($offset + $perPage, count($rankings)),
+                'total' => count($rankings)
+            ];
+
+            return response()->json($result);
         } catch (Exception $e){
             throw $e;
         }
