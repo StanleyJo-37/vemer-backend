@@ -4,6 +4,8 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublisherController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -53,12 +55,20 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
 
         Route::prefix("/publisher")->group(function (){
             // get total activies hosted
+            Route::get('/total-activities', [PublisherController::class, 'totalActivities']);
             // get total participant participated (count of user's approved)
+            Route::get('/total-participants', [PublisherController::class, 'totalParticipants']);
             // get total notification sent
+            Route::get('/total-notifications', [PublisherController::class, 'totalNotifications']);
             // get activity paginate (also get count of participant that is pending)
             // create activity
+            Route::post('/create-activity', [PublisherController::class, 'createActivity']);
+            // create badge
+            Route::post('/create-badge', [PublisherController::class, 'createBadge']);
             // handle upload image
+            Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
+            Route::get('/notifications', [PublisherController::class, 'getNotifications']);
             // approve and unapprove participants
         });
     });

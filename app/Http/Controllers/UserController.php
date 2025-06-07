@@ -151,6 +151,39 @@ class UserController extends Controller
             throw $e;
         }
     }
-    public function favouriteBadges(Request $request){}
-    public function setFavouriteBadges(Request $request){}
+    public function favouriteBadges(Request $request){
+        $user_id = $request->user()->id();
+        try{
+            $badges = DB::table('user_badges')
+                ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
+                ->where('user_badges.user_id', $user_id)
+                ->where('user_badges.favourite', '!=', null)
+                ->orderBy('user_badges.favourite', 'asc')
+                ->select('badges.*')
+                ->get();
+            return response()->json($badges);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+    public function setFavouriteBadges(Request $request){
+        $user_id = $request->user()->id();
+        $badge_id = $request->badge_id;
+        try{
+            $badges = DB::table('user_badges')
+                ->where('user_id', $user_id)
+                ->where('badge_id', $badge_id)
+                ->first();
+
+            if ($badges->favourite == null) {
+                $badges->update(['favourite' => 1]);
+            } else {
+                $badges->update(['favourite' => null]);
+            }
+
+            return response()->json($badges);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
 }
