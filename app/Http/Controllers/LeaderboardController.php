@@ -8,65 +8,69 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
-    public function getLeaderboard(Request $request){
-        try{
+    // koneksi category dengan activity,
+    public function getLeaderboardByID(int $leaderboard_id, Request $request){
+        try {
+            $request->validate([
+                'per_page' => 'required|integer',
+            ]);
 
-            $pointsSubquery = DB::table('user_awarded_points')
-                ->join('user_points', 'user_awarded_points.user_point_id', '=', 'user_points.id')
-                ->select(
-                    'user_awarded_points.user_id',
-                    DB::raw('SUM(user_points.value) as total_points_sum')
-                )
-                ->where('user_points.is_active', true)
-                ->groupBy('user_awarded_points.user_id');
+            $leaderboard = DB::table('leaderboards as l')
+                                ->select([
+                                    'l.id',
+                                    'l.name',
+                                    DB::raw("(
+                                        SELECT JSON_AGG(
+                                            JSON_BUILD_OBJECT(
+                                                // 'id', u.id,
+                                                'username', u.username,
+                                                'points', user_points.total_points,
+                                                'level', CASE
+                                                    WHEN user_points.total_points >= 5000 THEN 'Sigma'
+                                                    WHEN user_points.total_points >= 1000 THEN 'Alpha'
+                                                    WHEN user_points.total_points >= 500 THEN 'Gold'
+                                                    WHEN user_points.total_points >= 100 THEN 'Silver'
+                                                    ELSE 'Bronze'
+                                                END
+                                            )
+                                            ORDER BY user_points.total_points DESC
+                                        )
+                                        FROM (
+                                            SELECT up.user_id, SUM(up.point) as total_points
+                                            FROM user_points up
+                                            WHERE up.leaderboard_id = l.id
+                                            GROUP BY up.user_id
+                                        ) as user_points
+                                        JOIN users u ON u.id = user_points.user_id
+                                    ) AS ranking"),
+                                    DB::raw("(
+                                        SELECT JSON_AGG(
+                                            JSON_BUILD_OBJECT(
+                                                'id', a.id,
+                                                'name', a.name
+                                            )
+                                        )
+                                        FROM activities as a
+                                        JOIN leaderboard_activity as la ON la.activity_id = a.id
+                                        WHERE la.leaderboard_id = l.id
+                                    ) AS activities"),
+                                ])
+                                ->where('l.id', $leaderboard_id)
+                                ->where('l.is_active', true)
+                                ->paginate($request->per_page);
 
-            // Subquery to count distinct activities attended by each user
-            $activitiesSubquery = DB::table('activity_participants')
-                ->select(
-                    'user_id',
-                    // Assuming you want to count each distinct activity a user participated in.
-                    // If multiple entries for the same activity by the same user should count multiple times, use COUNT(id)
-                    DB::raw('COUNT(DISTINCT activity_id) as activities_attended_count')
-                )
-                ->groupBy('user_id');
-
-            $leaderboardQuery = DB::table('users')
-                ->leftJoinSub($pointsSubquery, 'points_data', function ($join) {
-                    $join->on('users.id', '=', 'points_data.user_id');
-                })
-                ->leftJoinSub($activitiesSubquery, 'activities_data', function ($join) {
-                    $join->on('users.id', '=', 'activities_data.user_id');
-                })
-                ->select(
-                    'users.id',
-                    'users.name',
-                    'users.profile_photo_path as avatar', // From your 'users' table schema
-                    DB::raw('COALESCE(points_data.total_points_sum, 0) as points'),
-                    DB::raw('COALESCE(activities_data.activities_attended_count, 0) as activitiesAttended'),
-                    DB::raw('RANK() OVER (ORDER BY COALESCE(points_data.total_points_sum, 0) DESC) as rank'),
-                    DB::raw("
-                        CASE
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 5000 THEN 'Sigma'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 1000 THEN 'Alpha'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 500 THEN 'Gold'
-                            WHEN COALESCE(points_data.total_points_sum, 0) >= 100 THEN 'Silver'
-                            ELSE 'Bronze'
-                        END as level
-                    ")
-                )
-                ->orderBy('rank', 'asc') // Primary sort: by calculated rank
-                ->orderBy('points', 'desc') // Secondary sort: by points (for tie-breaking within the same rank if needed by specific RANK behavior)
-                ->orderBy('users.name', 'asc'); // Tertiary sort: by user's name for further tie-breaking
-
-            // Fetch the results
-            // You might want to paginate or limit the results for large leaderboards
-            // For example: $topUsers = $leaderboardQuery->paginate(25);
-            // Or: $topUsers = $leaderboardQuery->limit(100)->get();
-            $topUsers = $leaderboardQuery->get();
-
-            return response()->json($topUsers);
+            return response()->json($leaderboard);
         } catch (Exception $e){
             throw $e;
+        }
+    }
+
+    public function getLeaderboard(Request $request){
+        $category = $request->category;
+        if($category == "all"){
+
+        } else {
+
         }
     }
 
@@ -89,10 +93,20 @@ class LeaderboardController extends Controller
     public function totalPointsEarned(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->join('users', 'activity_participants.user_id', '=', 'users.id')
+                ->join('user_points', 'user_points.user_id', '=', 'users.id');
+
+            if($category == "all"){
+                $totalPoints = $query->sum('user_points.point');
+
+                return response()->json($totalPoints);
             } else {
-                // categorical total points earned
+                $totalPointsCategory = $query->where('activities.activity_type', $category)
+                    ->sum('user_points.point');
+
+                return response()->json($totalPointsCategory);
             }
 
 
@@ -106,10 +120,18 @@ class LeaderboardController extends Controller
     public function totalEventsCompleted(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->where('activities.end_date', '<=', DB::raw('NOW()'));
+            if($category == "all"){
+                $totalEvents = $query->count('activity_participants.activity_id');
+
+                return response()->json($totalEvents);
             } else {
-                // categorical total events completed
+                $totalEventsCategory = $query->where('activities.activity_type', $category)
+                    ->count('activity_participants.activity_id');
+
+                return response()->json($totalEventsCategory);
             }
 
             // return number/int

@@ -18,11 +18,12 @@ Route::prefix('/public')->group(function () {
         });
     });
 
-    Route::prefix('/leaderboard')->group(function () {
+    Route::prefix('/leaderboard')->group(function(){
+        Route::get('/user/{leaderboard_id}', [LeaderboardController::class, "getLeaderboardByID"]);
         Route::get('/user', [LeaderboardController::class, "getLeaderboard"]);
         Route::get('/total-user', [LeaderboardController::class, 'totalActiveUser']);
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
-        Route::get('/active-user', [LeaderboardController::class, 'totalEventsCompleted']);
+        Route::get('/events-completed', [LeaderboardController::class, 'totalEventsCompleted']);
     });
 });
 
