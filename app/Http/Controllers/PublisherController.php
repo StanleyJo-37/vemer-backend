@@ -60,6 +60,7 @@ class PublisherController extends Controller
                         ->whereIn('activity_id', $publishedActivityIds)
                         ->distinct()
                         ->count('user_id');
+                    return response()->json($totalParticipants);
                 }
             }
         } catch (Exception $e) {
