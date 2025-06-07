@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class LeaderboardController extends Controller
 {
-    public function getLeaderboard(int $leaderboard_id, Request $request){
+    // koneksi category dengan activity,
+    public function getLeaderboardByID(int $leaderboard_id, Request $request){
         try {
             $request->validate([
                 'per_page' => 'required|integer',
@@ -21,7 +22,7 @@ class LeaderboardController extends Controller
                                     DB::raw("(
                                         SELECT JSON_AGG(
                                             JSON_BUILD_OBJECT(
-                                                'id', u.id, 
+                                                // 'id', u.id,
                                                 'username', u.username,
                                                 'points', user_points.total_points,
                                                 'level', CASE
@@ -61,6 +62,15 @@ class LeaderboardController extends Controller
             return response()->json($leaderboard);
         } catch (Exception $e){
             throw $e;
+        }
+    }
+
+    public function getLeaderboard(Request $request){
+        $category = $request->category;
+        if($category == "all"){
+            
+        } else {
+
         }
     }
 
