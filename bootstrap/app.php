@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AcceptJson;
+use App\Http\Middleware\AddCors;
 use App\Http\Middleware\AddToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         //
+        $middleware->append(AddCors::class);
         $middleware->append(AcceptJson::class);
         $middleware->append(AddToken::class);
     })

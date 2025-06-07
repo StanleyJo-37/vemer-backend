@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublisherController;
@@ -16,11 +17,11 @@ Route::prefix('/public')->group(function () {
         Route::prefix('/login')->group(function () {
             Route::post('/', [AuthController::class, 'login']);
             Route::post('/sso', [AuthController::class, 'loginSSO']);
-            Route::post('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
+            Route::get('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
         });
     });
 
-    Route::prefix('/leaderboard')->group(function () {
+    Route::prefix('/leaderboard')->group(function(){
         Route::get('/user', [LeaderboardController::class, "getLeaderboard"]);
         Route::get('/total-user', [LeaderboardController::class, 'totalActiveUser']);
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
@@ -28,8 +29,8 @@ Route::prefix('/public')->group(function () {
     });
 });
 
-//
-Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+// Auth
+Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
@@ -38,9 +39,7 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
 
     Route::prefix("/dashboard")->group(function () {
         Route::prefix("/user")->group(function () {
-            Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
-            Route::get('/total-points', [UserController::class, 'totalPoints']);
-            Route::get('/get-rank', [UserController::class, 'getRank']);
+            Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
             Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
             Route::get('/announcements', [UserController::class, 'announcements']);
             Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
@@ -68,5 +67,9 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
             // approve and unapprove participants
         });
+    });
+
+    Route::prefix(('/dashboard'))->group(function () {
+
     });
 });
