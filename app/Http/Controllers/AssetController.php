@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class AssetController extends Controller
 {
     //
-    public static static function getAsset(int $model_id, string $model_type, ?string $asset_type = null, bool $singleAsset = true) {
+    public static function getAsset(int $model_id, string $model_type, ?string $asset_type = null, bool $singleAsset = true) {
         try {
             $assets = AssetRelation::query()
                                     ->select([
@@ -65,13 +65,13 @@ class AssetController extends Controller
                     'mime_type' => $file->getMimeType(),
                     'size' => $file->getSize(),
                 ]);
-    
+
                 $ar = AssetRelation::create([
                     'asset_type' => $asset_type,
                     'model_id' => $model_id,
                     'asset_id' => $asset->id,
                 ]);
-    
+
                 return $asset;
             }
 

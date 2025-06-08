@@ -25,7 +25,7 @@ Route::prefix('/public')->group(function () {
         Route::get('/user', [LeaderboardController::class, "getLeaderboard"]);
         Route::get('/total-user', [LeaderboardController::class, 'totalActiveUser']);
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
-        Route::get('/active-user', [LeaderboardController::class, 'totalEventsCompleted']);
+        Route::get('/events-completed', [LeaderboardController::class, 'totalEventsCompleted']);
     });
 });
 
@@ -34,12 +34,18 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
-        Route::get('/{id}', [ActivityController::class, 'getDetail']);
+        Route::prefix('/{id}')->group(function (){
+            Route::get('/', [ActivityController::class, 'getDetail']);
+            Route::post('/enroll', [ActivityController::class, 'enroll']);
+        });
     });
 
     Route::prefix("/dashboard")->group(function () {
         Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
         Route::prefix("/user")->group(function () {
+            Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
+            Route::get('/total-points', [UserController::class, 'totalPoints']);
+            Route::get('/get-rank', [UserController::class, 'getRank']);
             Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
             Route::get('/announcements', [UserController::class, 'announcements']);
             Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
@@ -53,6 +59,8 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
         });
 
         Route::prefix("/publisher")->group(function (){
+            // get all publisher's activites
+            Route::get('/activities', [PublisherController::class, 'getAllActivites']);
             // get total activies hosted
             Route::get('/total-activities', [PublisherController::class, 'totalActivities']);
             // get total participant participated (count of user's approved)
@@ -62,6 +70,10 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             // get activity paginate (also get count of participant that is pending)
             // create activity
             Route::post('/create-activity', [PublisherController::class, 'createActivity']);
+            // create registration popup info
+            Route::post('/create-register-popup-info', [PublisherController::class, 'createRegistrationPopupInfo']);
+            // create activity with badges and registration popup at the same time
+            Route::post('/create-activity-popup-badge', [PublisherController::class, 'createActivityWithBadgeAndPopup']);
             // create badge
             Route::post('/create-badge', [PublisherController::class, 'createBadge']);
             // handle upload image

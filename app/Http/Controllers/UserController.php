@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -13,23 +14,14 @@ class UserController extends Controller
         try {
             $events = DB::table('activity_participants')->where('user_id', $user_id)
                 ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
-                ->select('activities.*')
-                ->get();
+                ->select('activities.id')
+                ->count("activities.id");
             return response()->json($events);
         } catch (Exception $e) {
             throw $e;
         }
     }
-    public function totalPoints(Request $request){
-        $user_id = $request->user()->id;
-        try {
-            $points = DB::table('user_points')->where('user_id', $user_id)
-                ->sum('point');
-            return response()->json($points);
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
+
     public function getRank(Request $request){
         $user_id = $request->user()->id;
 
@@ -84,6 +76,29 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function getTotalPoints(Request $request){
+        try{
+            // $userid = $request->user()->id;
+            $userid = 18;
+            $userPoints = DB::table('user_points')
+            ->where('user_id', $userid)
+            ->whereIn('id', function ($query) use ($userid) {
+                $query->select(DB::raw('MIN(id)'))
+                ->from('user_points')
+                ->where('user_id', $userid)
+                ->groupBy('activity_id');
+            })
+            ->sum('point');
+
+            Log::info("Check user points amount : " . $userPoints);
+
+            return response()->json($userPoints);
+        } catch (Exception $e){
+            throw $e;
+        }
+    }
+
     public function upcomingActivities(Request $request){
         $user_id = $request->user()->id();
         try {

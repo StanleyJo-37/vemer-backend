@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\AssetController;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\AssetController;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+
+use function PHPSTORM_META\type;
 
 class PublisherController extends Controller
 {
     public function totalActivities(Request $request){
-        $user_id = $request->user()->id;
+        $user_id = 18;
         try{
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
@@ -22,10 +26,10 @@ class PublisherController extends Controller
             if ($isPublisher) {
                 $totalActivities = DB::table('activities')
                     ->join('activity_participants', 'activities.id', '=', 'activity_participants.activity_id')
-                    ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
-                    ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
+                    // ->join('activity_participant_roles', 'activity_participants.id', '=', 'activity_participant_roles.registration_id')
+                    // ->join('roles', 'activity_participant_roles.role_id', '=', 'roles.id')
                     ->where('activity_participants.user_id', $user_id)
-                    ->where('roles.name', 'publisher')
+                    // ->where('roles.name', 'publisher')
                     ->distinct()
                     ->count('activities.id');
 
@@ -128,16 +132,15 @@ class PublisherController extends Controller
     }
     public function createActivity(Request $request){
         try {
-            // di tabel activities perlu ditambahin bbrp column lagi, seperti about, what_will_you_get, location, point_reward
+            // di tabel activities perlu ditambahin bbrp column lagi, seperti location, point_reward
             // Validate the request
             $request->validate([
                 'title' => 'required|string|max:255',
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'about' => 'required|string',
-                'what_will_you_get' => 'required|string',
+                'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048|nullable|required',
+                'description' => 'required|string',
                 'category' => 'required|string',
-                'time' => 'required|string',
-                'date' => 'required|date',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date',
                 'location' => 'required|string',
                 'point_reward' => 'required|integer|min:0',
             ]);
@@ -162,19 +165,19 @@ class PublisherController extends Controller
             $slug = Str::slug($request->title);
 
             // Format the date and time
-            $start_date = Carbon::parse($request->date . ' ' . $request->time);
+            $start_date = Carbon::parse($request->start_date . ' ' . $request->time);
+            $end_date = Carbon::parse($request->end_date . ' ' . $request->time);
 
             // Create the activity
             $activity = DB::table('activities')->insertGetId([
                 'name' => $request->title,
                 'slug' => $slug,
-                'description' => $request->about,
-                'what_will_you_get' => $request->what_will_you_get,
+                'description' => $request->description,
                 'category' => $request->category,
                 'location' => $request->location,
                 'point_reward' => $request->point_reward,
                 'start_date' => $start_date,
-                'end_date' => $start_date->copy()->addHours(2), // Default to 2 hours duration
+                'end_date' => $end_date,
                 'status' => 1, // Active
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -230,6 +233,47 @@ class PublisherController extends Controller
             ], 500);
         }
     }
+
+    public function createRegistrationPopupInfo(Request $request)
+    {
+
+        try {
+            $request->validate([
+                'activity_id' => 'required|integer|exists:activities,id', // Must be a valid ID in the activities table
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+            ]);
+
+            $popupInfoId = DB::table('registration_popup_info')->insertGetId([
+                'activity_id' => $request->input('activity_id'),
+                'title' => $request->input('title'),
+                'description' => $request->input('description'),
+                'created_at' => now(), // Manually set timestamps
+                'updated_at' => now(),
+            ]);
+
+            // Retrieve the full record we just created to return in the response
+            $popupInfo = DB::table('registration_popup_info')->find($popupInfoId);
+
+            // If successful, return a success response with the created data.
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration popup info created successfully.',
+                'data' => $popupInfo
+            ], 201); // 201 Created
+
+        } catch (\Exception $e) {
+            // If something goes wrong during database creation, return a server error.
+            // It's a good practice to log the error for debugging.
+            // Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while creating the record.',
+                'error_details' => $e->getMessage()
+            ], 500); // 500 Internal Server Error
+        }
+    }
+
     public function uploadImage(Request $request){
         try {
             // Validate the request
@@ -287,6 +331,7 @@ class PublisherController extends Controller
             ], 500);
         }
     }
+
     public function getNotifications(Request $request){
         $user_id = $request->user()->id;
         try{
@@ -323,7 +368,7 @@ class PublisherController extends Controller
             $request->validate([
                 'activity_id' => 'required|integer|exists:activities,id',
                 'name' => 'required|string|max:255',
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'icon' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'description' => 'required|string',
             ]);
 
@@ -369,8 +414,8 @@ class PublisherController extends Controller
             ]);
 
             // Upload the image
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
+            if ($request->hasFile('icon')) {
+                $image = $request->file('icon');
                 AssetController::uploadAsset(
                     $image,
                     'badges',
@@ -396,6 +441,151 @@ class PublisherController extends Controller
         }
     }
 
+    public function createActivityWithBadgeAndPopup(Request $request)
+    {
+        // Start a database transaction to ensure atomicity
+        DB::beginTransaction();
+
+
+        try {
+            // Using 'required_if' makes the validation conditional based on the boolean flags.
+
+            $validatedData = $request;
+            $validatedData = $request->validate([
+                // --- Activity Fields (Always required) ---
+                'title' => 'required|string|max:255',
+                'activity_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'activity_description' => 'required|string',
+                'category' => 'required|string',
+                'start_date' => 'required|date_format:Y-m-d\TH:i',
+                'end_date'   => 'required|date_format:Y-m-d\TH:i|after_or_equal:start_date',
+                'location' => 'required|string',
+                'point_reward' => 'required|integer|min:0',
+
+                // // --- Boolean Flags ---
+                'badge_exist' => 'required|boolean',
+                'popup_exist' => 'required|boolean',
+
+                // // --- Badge Fields (Conditionally required) ---
+                'name' => 'required_if:badge_exist,true|string|max:255',
+                'icon' => 'required_if:badge_exist,true|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'badge_description' => 'required_if:badge_exist,true|string',
+
+                // // --- Popup Fields (Conditionally required) ---
+                'popup_title' => 'required_if:popup_exist,true|string|max:255',
+                'popup_description' => 'required_if:popup_exist,true|string',
+            ]);
+
+            // You can also use logger('message') or info('message') helper functions
+
+
+            // 2. Get user ID and check if they are a publisher
+
+            // MASIH STATIC///////
+            //                  //
+            //                  //
+            $user_id = 18;      //
+            //                  //
+            //                  //
+            //                  //
+            /////////////////////
+
+
+            $isPublisher = DB::table('users')->where('id', $user_id)->where('is_publisher', true)->exists();
+
+
+            if (!$isPublisher) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Unauthorized. Only publishers can perform this action.'], 403);
+            }
+
+            // 3. Create the Activity
+            $slug = Str::slug($validatedData['title']);
+            $start_datetime = Carbon::createFromFormat('Y-m-d\TH:i', $validatedData['start_date']);
+            $end_datetime = Carbon::createFromFormat('Y-m-d\TH:i', $validatedData['end_date']);
+
+
+            $activity_id = DB::table('activities')->insertGetId([
+                'name' => $validatedData['title'],
+                'slug' => $slug,
+                'description' => $validatedData['activity_description'],
+                'activity_type' => "volunteer",
+                'role_group_id' => 1,
+                'location' => $validatedData['location'],
+                'points_reward' => $validatedData['point_reward'],
+                'start_date' => $start_datetime,
+                'end_date' => $end_datetime,
+                'status' => true, // Active
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+
+            // 4. Register the creator as a publisher for this activity
+            // This logic appears consistent with your example.
+            DB::table('activity_participants')->insertGetId([
+                'user_id' => $user_id, 'activity_id' => $activity_id, 'status' => 'Pending',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+
+            // 5. Upload Activity Image (if provided)
+            if ($request->hasFile('activity_image')) {
+                AssetController::uploadAsset($request->file('activity_image'), 'activities', $activity_id, 'App\\Models\\Activity', 'Thumbnail');
+            }
+
+            // This will hold the IDs of the items we create
+            $createdItems = ['activity_id' => $activity_id];
+
+            // 6. Create Badge (if requested)
+            if ($validatedData['badge_exist']) {
+                $badge_id = DB::table('badges')->insertGetId([
+                    'name' => $validatedData['name'],
+                    'description' => $validatedData['badge_description'],
+                    'activity_id' => $activity_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $createdItems['badge_id'] = $badge_id;
+
+                // Upload badge icon
+                if ($request->hasFile('badge_icon')) {
+                    AssetController::uploadAsset($request->file('badge_icon'), 'badges', $badge_id, 'App\\Models\\Badge', 'Badge');
+                }
+            }
+
+            // 7. NEW: Create Registration Popup Info (if requested)
+            if ($validatedData['popup_exist']) {
+                $popup_info_id = DB::table('registration_popup_info')->insertGetId([
+                    'activity_id' => $activity_id,
+                    'title' => $validatedData['popup_title'],
+                    'description' => $validatedData['popup_description'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $createdItems['popup_info_id'] = $popup_info_id;
+            }
+
+            // Commit the transaction as all operations were successful
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Activity and related items created successfully.',
+                'data' => $createdItems
+            ], 201);
+
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Validation failed.', 'errors' => $e->errors()], 422);
+        } catch (Exception $e) {
+            DB::rollBack();
+            // In a real application, you would log the error.
+            // Log::error("Error creating activity bundle: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'An error occurred.', 'error_details' => $e->getMessage()], 500);
+        }
+    }
+
     public function approveParticipants(Request $request){
         $user_id = $request->user_id;
         $activity_id = $request->activity_id;
@@ -408,6 +598,21 @@ class PublisherController extends Controller
                 ->update(["status" => $status]);
         } catch (Exception $e) {
             throw $e;
+        }
+    }
+
+    public function getAllActivites(Request $request){
+        $user_id = 18;
+        $activities = DB::table('activities')
+            ->join("activity_participants", "activities.id", "=", "activity_participants.activity_id")
+            ->where("activity_participants.user_id", $user_id)
+            ->select("activities.*")
+            ->get();
+
+        if($activities){
+            return response()->json($activities);
+        } else{
+            return response()->json([]);
         }
     }
 }
