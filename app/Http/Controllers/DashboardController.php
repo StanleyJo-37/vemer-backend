@@ -33,6 +33,7 @@ class DashboardController extends Controller
             $stats->pointsToNextLevel = $stats->totalPoints % $pointsLevelInterval;
             $stats->progressToNextLevel = ($stats->pointsToNextLevel / $pointsLevelInterval) * 100;
             $stats->level = floor($stats->totalPoints / $pointsLevelInterval);
+            $stats->totalPoints = (int)$stats->totalPoints;
 
             return response()->json($stats);
         } catch (Exception $e) {
