@@ -118,23 +118,25 @@ class ActivityController extends Controller
     // Auth
     public function enroll(Request $request, int $id) {
         try {
-            $request->validate([
-                'roles' => 'required|array'
-            ]);
+//            $request->validate([
+//                'roles' => 'required|array'
+//            ]);
+
 
             $user = Auth::user();
+            $user_id = $user->id;
 
             $registration_id = ActivityParticipants::insertGetId([
-                'user_id' => $user->id,
-                'activitiy_id' => $id,
+                'user_id' => $user_id,
+                'activity_id' => $id,
             ]);
 
-            foreach ($request->roles as $role_id) {
-                ActivityParticipantRole::create([
-                    'registration_id' => $registration_id,
-                    'role_id' => $role_id
-                ]);
-            }
+//            foreach ($request->roles as $role_id) {
+//                ActivityParticipantRole::create([
+//                    'registration_id' => $registration_id,
+//                    'role_id' => $role_id
+//                ]);
+//            }
 
             return response()->json($registration_id);
         } catch (Exception $e) {
