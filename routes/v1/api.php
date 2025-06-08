@@ -38,8 +38,8 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     });
 
     Route::prefix("/dashboard")->group(function () {
+        Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
         Route::prefix("/user")->group(function () {
-            Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
             Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
             Route::get('/announcements', [UserController::class, 'announcements']);
             Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
@@ -70,9 +70,5 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
             // approve and unapprove participants
         });
-    });
-
-    Route::prefix(('/dashboard'))->group(function () {
-        Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
     });
 });

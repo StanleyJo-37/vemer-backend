@@ -14,6 +14,8 @@ class DashboardController extends Controller
         try {
             $user = Auth::user();
 
+            $pointsLevelInterval = 500;
+
             $stats = DB::table('users as u')
                         ->select([
                             DB::raw('COALESCE(SUM(up.point), 0) AS "totalPoints"'),
@@ -27,6 +29,10 @@ class DashboardController extends Controller
                         ->join('user_points as up', 'up.user_id', '=','u.id')
                         ->where('u.id', $user->id)
                         ->first();
+
+            $stats->pointsToNextLevel = $stats->totalPoints % $pointsLevelInterval;
+            $stats->progressToNextLevel = ($stats->pointsToNextLevel / $pointsLevelInterval) * 100;
+            $stats->level = floor($stats->totalPoints / $pointsLevelInterval);
 
             return response()->json($stats);
         } catch (Exception $e) {
