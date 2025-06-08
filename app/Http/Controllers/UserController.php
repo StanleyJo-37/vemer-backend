@@ -217,24 +217,33 @@ class UserController extends Controller
         }
 
     }
+
     public function badges(Request $request){
         try{
             $user = Auth::user();
 
+            $page_count = (int) $request->input('per_page', 15);
+
+            if($request->has('limit')){
+                $page_count = (int) $request->input('limit');
+
+                if($page_count <= 0){
+                    $page_count = 4;
+                }
+            }
+
             $badges = DB::table('user_badges as ub')
                         ->join('badges as b', 'ub.badge_id', '=', 'b.id')
                         ->where('ub.user_id', $user->id)
-                        ->select('b.*')
-                        ->when($request->has('limit'), function ($query) use ($request) {
-                            $query->limit($request->input('limit'));
-                        })
-                        ->get();
+                        ->select(['b.name', 'b.'])
+                        ->paginate($page_count);
 
             return response()->json($badges);
         } catch (Exception $e) {
             throw $e;
         }
     }
+
     public function favouriteBadges(Request $request){
         try{
             $user = Auth::user();

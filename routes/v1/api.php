@@ -51,6 +51,9 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
         });
     });
 
+    // check if the user is a publisher or not
+    Route::get('/is-publisher', [PublisherController::class, 'getIsPublisher']);
+
     Route::prefix("/dashboard")->group(function () {
         Route::prefix("/user")->group(function () {
             Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
@@ -91,8 +94,6 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
-            // check if the user is a publisher or not
-            Route::get('/is-publisher', [PublisherController::class, 'getIsPublisher']);
         });
     });
 });
