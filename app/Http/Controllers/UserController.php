@@ -4,19 +4,39 @@ namespace App\Http\Controllers;
 
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
     public function activitiesAttended(Request $request){
-        $user_id = $request->user()->id;
         try {
-            $events = DB::table('activity_participants')->where('user_id', $user_id)
-                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
-                ->select('activities.id')
-                ->count("activities.id");
+            $user = Auth::user();
+
+            $events = DB::table('activity_participants')->where('user_id', $user->id)
+                        ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                        ->select('activities.*')
+                        ->when($request->has('limit'), function ($query) use ($request) {
+                            $query->limit($request->input('limit'));
+                        })
+                        ->get();
+
             return response()->json($events);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+    public function totalPoints(Request $request){
+
+        try {
+            $user = Auth::user();
+
+            $points = DB::table('user_points')
+                        ->where('user_id', $user->id)
+                        ->sum('point');
+
+            return response()->json($points);
         } catch (Exception $e) {
             throw $e;
         }
@@ -43,7 +63,7 @@ class UserController extends Controller
     }
 
     public function getRank(Request $request){
-        $user_id = $request->user()->id;
+        $user = Auth::user();
 
         try {
             $query = "
@@ -73,7 +93,7 @@ class UserController extends Controller
                     user_id = ?
             ";
 
-            $rankData = DB::selectOne($query, [$user_id]);
+            $rankData = DB::selectOne($query, [$user->id]);
 
             if ($rankData) {
                 return response()->json([
@@ -90,10 +110,7 @@ class UserController extends Controller
                 ], 404);
             }
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'An internal server error occurred while fetching the rank.'
-            ], 500);
+            throw $e;
         }
     }
 
@@ -120,26 +137,37 @@ class UserController extends Controller
     }
 
     public function upcomingActivities(Request $request){
-        $user_id = $request->user()->id();
         try {
-            $activities = DB::table('activities')->where('start_date', '>', now())
-                ->join('activity_participants', 'activities.id', '=', 'activity_participants.activity_id')
-                ->where('activity_participants.user_id', $user_id)
-                ->select('activities.*')
-                ->get();
+            $user = Auth::user();
+
+            $activities = DB::table('activities as a')
+                            ->join('activity_participants as ap', 'a.id', '=', 'ap.activity_id')
+                            ->where('a.start_date', '>', now())
+                            ->where('ap.user_id', $user->id)
+                            ->select('a.*')
+                            ->when($request->has('limit'), function ($query) use ($request) {
+                                $query->limit($request->input('limit'));
+                            })
+                            ->get();
+
             return response()->json($activities);
         } catch (Exception $e) {
             throw $e;
         }
     }
     public function announcements(Request $request){
-        $user_id = $request->user()->id();
         try {
-            $announcements = DB::table('notifications')
-                ->join('user_notification', 'notifications.id', '=', 'user_notification.notification_id')
-                ->where('user_notification.user_id', $user_id)
-                ->select('notifications.*')
-                ->get();
+            $user = Auth::user();
+
+            $announcements = DB::table('notifications as n')
+                                ->join('user_notification as un', 'n.id', '=', 'un.notification_id')
+                                ->where('un.user_id', $user->id)
+                                ->select('n.*')
+                                ->when($request->has('limit'), function ($query) use ($request) {
+                                    $query->limit($request->input('limit'));
+                                })
+                                ->get();
+
             return response()->json($announcements);
         } catch (Exception $e) {
             throw $e;
@@ -147,26 +175,42 @@ class UserController extends Controller
     }
     public function recommendedActivities(Request $request){
         try {
-            $activities = DB::table('activities')
-                ->where('start_date', '>', now())
-                ->orderBy('start_date', 'asc')
-                ->limit(3)
-                ->get();
+            $user = Auth::user();
+
+            $activities = DB::table('activities as a')
+                            ->where('a.start_date', '>', now())
+                            ->orderBy('a.start_date', 'asc')
+                            ->when($request->has('limit'), function ($query) use ($request) {
+                                $query->limit($request->input('limit'));
+                            })
+                            ->whereNotIn('a.id', function ($query) use ($user) {
+                                $query->select('ap.activity_id')
+                                    ->distinct()
+                                    ->from('activity_participants as ap')
+                                    ->where('ap.user_id', $user->id);
+                            })
+                            ->get();
+
             return response()->json($activities);
         } catch (Exception $e) {
             throw $e;
         }
     }
     public function recentParticipation(Request $request){
-        $user_id = $request->user()->id();
         try{
-            $pastActivities = DB::table('activity_participants')
-                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
-                ->where('activity_participants.user_id', $user_id)
-                ->where('activities.start_date', '<', now())
-                ->orderBy('activities.start_date', 'desc')
-                ->select('activities.*')
-                ->get();
+            $user = Auth::user();
+
+            $pastActivities = DB::table('activity_participants as ap')
+                                ->join('activities as a', 'ap.activity_id', '=', 'a.id')
+                                ->where('ap.user_id', $user->id)
+                                ->where('a.start_date', '<', now())
+                                ->orderBy('a.start_date', 'desc')
+                                ->select('a.*')
+                                ->when($request->has('limit'), function ($query) use ($request) {
+                                    $query->limit($request->input('limit'));
+                                })
+                                ->get();
+
             return response()->json($pastActivities);
         } catch (Exception $e) {
             throw $e;
@@ -174,41 +218,54 @@ class UserController extends Controller
 
     }
     public function badges(Request $request){
-        $user_id = $request->user()->id();
         try{
-            $badges = DB::table('user_badges')
-                ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
-                ->where('user_badges.user_id', $user_id)
-                ->select('badges.*')
-                ->get();
+            $user = Auth::user();
+
+            $badges = DB::table('user_badges as ub')
+                        ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+                        ->where('ub.user_id', $user->id)
+                        ->select('b.*')
+                        ->when($request->has('limit'), function ($query) use ($request) {
+                            $query->limit($request->input('limit'));
+                        })
+                        ->get();
+
             return response()->json($badges);
         } catch (Exception $e) {
             throw $e;
         }
     }
     public function favouriteBadges(Request $request){
-        $user_id = $request->user()->id();
         try{
-            $badges = DB::table('user_badges')
-                ->join('badges', 'user_badges.badge_id', '=', 'badges.id')
-                ->where('user_badges.user_id', $user_id)
-                ->where('user_badges.favourite', '!=', null)
-                ->orderBy('user_badges.favourite', 'asc')
-                ->select('badges.*')
-                ->get();
+            $user = Auth::user();
+
+            $badges = DB::table('user_badges as ub')
+                        ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+                        ->where('ub.user_id', $user->id)
+                        ->where('ub.favourite', '!=', null)
+                        ->orderBy('ub.favourite', 'asc')
+                        ->select('b.*')
+                        ->when($request->has('limit'), function ($query) use ($request) {
+                            $query->limit($request->input('limit'));
+                        })
+                        ->get();
+
             return response()->json($badges);
         } catch (Exception $e) {
             throw $e;
         }
     }
     public function setFavouriteBadges(Request $request){
-        $user_id = $request->user()->id();
-        $badge_id = $request->badge_id;
-        try{
-            $badges = DB::table('user_badges')
-                ->where('user_id', $user_id)
-                ->where('badge_id', $badge_id)
-                ->first();
+
+        try {
+            $badge_id = $request->input('badge_id');
+
+            $user = Auth::user();
+
+            $badges = DB::table('user_badges as ub')
+                        ->where('ub.user_id', $user->id)
+                        ->where('ub.badge_id', $badge_id)
+                        ->first();
 
             if ($badges->favourite == null) {
                 $badges->update(['favourite' => 1]);

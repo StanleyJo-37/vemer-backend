@@ -31,6 +31,10 @@ Route::prefix('/public')->group(function () {
 
 // Auth
 Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
+    Route::prefix('/auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
+
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
@@ -42,11 +46,11 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     });
 
     Route::prefix("/dashboard")->group(function () {
-        Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
         Route::prefix("/user")->group(function () {
             Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
             Route::get('/total-points', [UserController::class, 'getTotalPoints']);
             Route::get('/get-rank', [UserController::class, 'getRank']);
+            Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
             Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
             Route::get('/announcements', [UserController::class, 'announcements']);
             Route::get('/recommended-activities', [UserController::class, 'recommendedActivities']);
