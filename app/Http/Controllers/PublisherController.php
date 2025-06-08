@@ -523,19 +523,10 @@ class PublisherController extends Controller
 
             // 4. Register the creator as a publisher for this activity
             // This logic appears consistent with your example.
-            $registration_id = DB::table('activity_participants')->insertGetId([
+            DB::table('activity_participants')->insertGetId([
                 'user_id' => $user_id, 'activity_id' => $activity_id, 'status' => 'Pending',
                 'created_at' => now(), 'updated_at' => now(),
             ]);
-
-
-            // $publisher_role = DB::table('roles')->where('name', 'publisher')->first();
-            // if ($publisher_role) {
-            //     DB::table('activity_participant_roles')->insert([
-            //         'registration_id' => $registration_id, 'role_id' => $publisher_role->id,
-            //         'created_at' => now(), 'updated_at' => now(),
-            //     ]);
-            // }
 
 
             // 5. Upload Activity Image (if provided)

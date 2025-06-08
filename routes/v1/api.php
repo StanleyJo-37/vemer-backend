@@ -43,7 +43,7 @@ Route::prefix('/auth')->group(function () {
     Route::prefix("/dashboard")->group(function () {
         Route::prefix("/user")->group(function () {
             Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
-            Route::get('/total-points', [UserController::class, 'totalPoints']);
+            Route::get('/total-points', [UserController::class, 'getTotalPoints']);
             Route::get('/get-rank', [UserController::class, 'getRank']);
             Route::get('/upcoming-activities', [UserController::class, 'upcomingActivities']);
             Route::get('/announcements', [UserController::class, 'announcements']);
