@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Activity;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -131,6 +132,31 @@ class PublisherController extends Controller
             throw $e;
         }
     }
+
+    public function getIsPublisher(Request $request){
+        Log::info('EEROROOROOROORORO ');
+        try{
+            $user_id = Auth::user()->id;
+
+            Log::info('EEROROOROOROORORO ' . $user_id);
+
+            $ispublisher = DB::table('users')->where('id', $user_id)
+            ->first('is_publisher');
+
+            Log::info('EEROROOROOROORORO ' . $ispublisher );
+
+            Log::info('Does badge_exist? ' . gettype($ispublisher));
+
+            if($ispublisher == null){
+                return response()->json(['message'=>'User not found'], status:404);
+            }
+
+            return response()->json($ispublisher);
+        } catch (Exception $e){
+            throw $e;
+        }
+    }
+
     public function createActivity(Request $request){
         try {
             // di tabel activities perlu ditambahin bbrp column lagi, seperti location, point_reward
@@ -482,14 +508,7 @@ class PublisherController extends Controller
 
             // 2. Get user ID and check if they are a publisher
 
-            // MASIH STATIC///////
-            //                  //
-            //                  //
-            $user_id = 18;      //
-            //                  //
-            //                  //
-            //                  //
-            /////////////////////
+            $user_id = $request->user()->id;
 
 
             $isPublisher = DB::table('users')->where('id', $user_id)->where('is_publisher', true)->exists();

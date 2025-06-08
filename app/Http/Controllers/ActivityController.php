@@ -74,39 +74,37 @@ class ActivityController extends Controller
 
     public function getDetail(Request $request, int $id) {
         try {
-            $activity = Activity::find($id);
+           $activity = DB::table('activities as a')->select([
+                                   'a.id',
+                                   'a.name',
+                                   'a.description',
+                                   'a.activity_type',
+                                //    DB::raw("(
+                                //        SELECT STRING_AGG(ar.name, ', ')
+                                //        FROM activity_roles ar
+                                //        WHERE ar.group_id = a.role_group_id
+                                //    ) as roles"),
+                                   DB::raw("(
+                                       SELECT JSON_AGG(JSON_BUILD_OBJECT('id', b.id, 'name', b.name))
+                                       FROM badges b
+                                       WHERE b.activity_id = a.id
+                                   ) as badges"),
+                                   DB::raw("COUNT(par.user_id) AS participant_count"),
+                                   DB::raw("TO_CHAR(a.start_date, 'YYYY-mm-dd HH24:MI:SS') as start_date"),
+                                   DB::raw("TO_CHAR(a.end_date, 'YYYY-mm-dd HH24:MI:SS') as end_date"),
+                                   'a.slug',
+                               ])
+                               ->join('activity_participants as par', 'par.activity_id', '=', 'a.id')
+                               ->where('a.status', 1)
+                               // ->where('a.start_date', '<=', Carbon::now())
+                               // ->where('a.end_date', '>=', Carbon::now())
+                               ->where('a.id', $id)
+                               ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug')
+                               ->first();
 
-            if (! isset($activity)) {
+            if (!$activity) {
                 return response()->json('Activity not found.', 404);
             }
-
-
-
-//            $activity = $activity->select([
-//                                    'a.id',
-//                                    'a.name',
-//                                    'a.description',
-//                                    'a.activity_type',
-//                                    DB::raw("(
-//                                        SELECT STRING_AGG(ar.name, ', ')
-//                                        FROM activity_roles ar
-//                                        WHERE ar.group_id = a.role_group_id
-//                                    ) as roles"),
-//                                    DB::raw("(
-//                                        SELECT JSON_AGG(JSON_BUILD_OBJECT('id', b.id, 'name', b.name))
-//                                        FROM badges b
-//                                        WHERE b.activity_id = a.id
-//                                    ) as badges"),
-//                                    DB::raw("COUNT(par.user_id) AS participant_count"),
-//                                    DB::raw("TO_CHAR(a.start_date, 'YYYY-mm-dd HH24:MI:SS') as start_date"),
-//                                    DB::raw("TO_CHAR(a.end_date, 'YYYY-mm-dd HH24:MI:SS') as end_date"),
-//                                    'a.slug',
-//                                ])
-//                                ->join('activity_participants as par', 'par.activity_id', '=', 'a.id')
-//                                ->where('activity.status', 1)
-//                                // ->where('activity.start_date', '<=', Carbon::now())
-//                                // ->where('activity.end_date', '>=', Carbon::now())
-//                                ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug');
 
             $thumbnail = AssetController::getAsset($activity->id, Activity::class, 'Thumbnail');
 //            $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);

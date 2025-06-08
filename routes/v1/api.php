@@ -27,6 +27,14 @@ Route::prefix('/public')->group(function () {
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
         Route::get('/events-completed', [LeaderboardController::class, 'totalEventsCompleted']);
     });
+
+    Route::prefix('/activities')->group(function () {
+        Route::get('/', [ActivityController::class, 'get']);
+        Route::get('/{id}', [ActivityController::class, 'getDetail']);
+        // Route::prefix('/{id}')->group(function (){
+        // });
+    });
+
 });
 
 // Auth
@@ -37,9 +45,7 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
 
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
-        Route::get('/', [ActivityController::class, 'get']);
         Route::prefix('/{id}')->group(function (){
-            Route::get('/', [ActivityController::class, 'getDetail']);
             Route::post('/enroll', [ActivityController::class, 'enroll']);
             Route::get('/get-status', [UserController::class, 'getStatus']);
         });
@@ -85,7 +91,8 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
-            // approve and unapprove participants
+            // check if the user is a publisher or not
+            Route::get('/is-publisher', [PublisherController::class, 'getIsPublisher']);
         });
     });
 });
