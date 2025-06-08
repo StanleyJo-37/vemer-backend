@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AssetController;
+use App\Models\Activity;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -210,7 +211,7 @@ class PublisherController extends Controller
                     $image,
                     'activities',
                     $activity,
-                    'App\\Models\\Activity',
+                    Activity::class,
                     'Thumbnail'
                 );
             }

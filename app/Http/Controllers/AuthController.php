@@ -91,7 +91,7 @@ class AuthController extends Controller
     public function loginSSO(Request $request) {
         try {
             $request->validate([
-                'provider' => 'string|required|in:google,linkedin-openid',
+                'provider' => 'string|required|in:google',
                 // 'web_origin' => 'string',
                 // 'target_path' => 'string',
             ]);
@@ -153,6 +153,23 @@ class AuthController extends Controller
 
             return response($script, 200)->header('Content-Type', 'text/html')
                                         ->withCookie($cookie);
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function logout(Request $request) {
+        try {
+            DB::beginTransaction();
+
+            $request->user()->currentAccessToken()->delete();
+
+            $token_cookie = cookie('vemer_token', null, -2628000, null, null);
+            return response()->json([
+                                'message' => 'Logged out successfully!'
+                            ])
+                            ->withCookie($token_cookie);
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
