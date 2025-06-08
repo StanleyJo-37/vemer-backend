@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublisherController;
@@ -21,7 +22,6 @@ Route::prefix('/public')->group(function () {
     });
 
     Route::prefix('/leaderboard')->group(function(){
-        Route::get('/user/{leaderboard_id}', [LeaderboardController::class, "getLeaderboardByID"]);
         Route::get('/user', [LeaderboardController::class, "getLeaderboard"]);
         Route::get('/total-user', [LeaderboardController::class, 'totalActiveUser']);
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
@@ -29,8 +29,8 @@ Route::prefix('/public')->group(function () {
     });
 });
 
-//
-Route::prefix('/auth')->group(function () {
+// Auth
+Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
@@ -41,6 +41,7 @@ Route::prefix('/auth')->group(function () {
     });
 
     Route::prefix("/dashboard")->group(function () {
+        Route::get('/stats', [DashboardController::class, 'getGeneralStats']);
         Route::prefix("/user")->group(function () {
             Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
             Route::get('/total-points', [UserController::class, 'getTotalPoints']);
@@ -52,6 +53,9 @@ Route::prefix('/auth')->group(function () {
             Route::get('/badges', [UserController::class, 'badges']);
             Route::get('/favourite-badges', [UserController::class, 'favouriteBadges']);
             Route::post('/set-favourite-badges', [UserController::class, 'setFavouriteBadges']);
+            Route::get('/attended-activities', [UserController::class, 'activitiesAttended']);
+            Route::get('/total-points', [UserController::class, 'totalPoints']);
+            Route::get('/get-rank', [UserController::class, 'getRank']);
         });
 
         Route::prefix("/publisher")->group(function (){

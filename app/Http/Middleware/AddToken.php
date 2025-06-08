@@ -18,8 +18,9 @@ class AddToken
         // $request->getBasePath();
 
         if (! $request->hasHeader('Authorization')) {
-            $token = $request->cookie('vemer_token');
-            $request->headers->set('Authorization', "Bearer $token");
+            if ($token = $request->cookie('vemer_token')) {
+                $request->headers->set('Authorization', "Bearer $token");
+            }
         }
         return $next($request);
     }
