@@ -37,6 +37,7 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
         Route::prefix('/{id}')->group(function (){
             Route::get('/', [ActivityController::class, 'getDetail']);
             Route::post('/enroll', [ActivityController::class, 'enroll']);
+            Route::get('/get-status', [UserController::class, 'getStatus']);
         });
     });
 

@@ -22,6 +22,26 @@ class UserController extends Controller
         }
     }
 
+    public function getStatus(Request $request, $id){
+        try{
+            $user_id = $request->user()->id;
+            Log::info("Activity id: " . $id . " " . "User id: " . $user_id);
+            $status = DB::table('activity_participants')
+                ->where('user_id', $user_id)
+                ->where('activity_id', $id)
+                ->value('status');
+
+            if($status == null){
+                return response()->json("Unregistered");
+            }else {
+                return response()->json($status);
+            }
+
+        } catch (Exception $e){
+            throw $e;
+        }
+    }
+
     public function getRank(Request $request){
         $user_id = $request->user()->id;
 
@@ -79,8 +99,8 @@ class UserController extends Controller
 
     public function getTotalPoints(Request $request){
         try{
-            // $userid = $request->user()->id;
-            $userid = 18;
+            $userid = $request->user()->id;
+            // $userid = 18;
             $userPoints = DB::table('user_points')
             ->where('user_id', $userid)
             ->whereIn('id', function ($query) use ($userid) {
