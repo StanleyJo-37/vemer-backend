@@ -203,8 +203,6 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            Auth::guard('web')->logout();
-
             $request->user()->currentAccessToken()->delete();
 
             $token_cookie = cookie('vemer_token', null, -2628000, null, null);
