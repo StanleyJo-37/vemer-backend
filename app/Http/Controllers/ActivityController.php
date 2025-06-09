@@ -125,9 +125,7 @@ class ActivityController extends Controller
 //                'roles' => 'required|array'
 //            ]);
 
-
-            $user = Auth::user();
-            $user_id = $user->id;
+            $user_id = Auth::id();
 
             $registration_id = ActivityParticipants::insertGetId([
                 'user_id' => $user_id,
