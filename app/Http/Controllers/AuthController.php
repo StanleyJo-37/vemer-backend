@@ -93,9 +93,9 @@ class AuthController extends Controller
                 'is_publisher' => 'required|boolean',
             ]);
 
-            $query = DB::table('users')
-                ->where('users.id', $user_id)
-                ->update(['users.is_publisher', $validatedRequest['is_publisher']]);;
+            DB::table('users')
+                ->where('id', $user_id)
+                ->update(['is_publisher' => $validatedRequest['is_publisher']]);
 
             return response()->json(['message' => 'Publisher status updated successfully.'], 200);
         } catch (Exception $e) {
