@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
+use function Laravel\Prompts\table;
 use function PHPSTORM_META\type;
 
 class PublisherController extends Controller
@@ -704,6 +705,79 @@ class PublisherController extends Controller
             return response()->json($activities->isEmpty() ? [] : $activities);
         } catch (Exception $e) {
             Log::error('Error in getAllActivites: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function endActivity(Request $request, int $id) {
+        try {
+            if (!Auth::check()) {
+                Log::info('User not authenticated in getParticipants');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            $publisher_id = Auth::id();
+
+            Log::info('User ID in getParticipants: ' . $publisher_id);
+            $participants = DB::table('activity_participants')
+                ->join("users", "activity_participants.user_id", "=", "users.id")
+                ->where("activity_participants.activity_id", $id)
+                ->select("users.*", "activity_participants.status")
+                ->get();
+
+            $isPublisherInList = $participants->contains('id', $publisher_id);
+
+            if ($isPublisherInList) {
+                Log::info("Publisher ($publisher_id) was found in the participant list for activity $id.");
+                $participantsWithoutPublisher = $participants->where('id', '!=', $publisher_id);
+                $activity = DB::table('activities')->where('id', $id)->first();
+                $badge = DB::table('badges')->where('activity_id', $id)->first();
+
+                foreach ($participantsWithoutPublisher as $participant) {
+                    $participantId = $participant->id;
+
+                    if ($participant->status == 'Confirmed') {
+                        DB::table('user_points')->insert([
+                            'user_id' => $participantId,
+                            'leaderboard_id' => 0,
+                            'point' => $activity->points_reward,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                            'activity_id' => $id
+                        ]);
+
+                        if ($badge != null) {
+                            $badges = [
+                                'user_id' => $participantId,
+                                'badge_id' => $badge->id,
+                                'points_awarded' => 10,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                                'favourite' => 10
+                            ];
+
+                            DB::table('user_badges')->insert([$badges]);
+                        }
+                    }
+                }
+
+                DB::table('activities')
+                    ->where('id', $id)
+                    ->update(['status' => false]);
+
+                return response()->json([
+                    'message' => 'Activity ended successfully',
+                    'data' => $activity,
+                ], 200);
+            } else {
+                // The publisher's ID was NOT found among the participants
+                Log::info("Publisher ($publisher_id) was NOT in the participant list for activity $id.");
+                return response()->json([
+                    'message' => 'Not a publisher.'
+                ], 404);
+            }
+        } catch (Exception $e) {
+            Log::error('Error in getParticipants: ' . $e->getMessage());
             throw $e;
         }
     }
