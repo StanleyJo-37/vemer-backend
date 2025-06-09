@@ -18,8 +18,15 @@ use function PHPSTORM_META\type;
 class PublisherController extends Controller
 {
     public function totalActivities(Request $request){
-        $user_id = 18;
         try{
+            if (!Auth::check()) {
+                Log::info('User not authenticated in totalActivities');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            $user_id = Auth::id();
+            Log::info('User ID in totalActivities: ' . $user_id);
+
             $isPublisher = DB::table('users')
                 ->where('id', $user_id)
                 ->where('is_publisher', true)
@@ -41,6 +48,7 @@ class PublisherController extends Controller
                 return response()->json(0);
             }
         } catch (Exception $e) {
+            Log::error('Error in totalActivities: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -134,25 +142,29 @@ class PublisherController extends Controller
     }
 
     public function getIsPublisher(Request $request){
-        Log::info('EEROROOROOROORORO ');
         try{
-            $user_id = Auth::user()->id;
+            Log::info('Starting getIsPublisher method');
 
-            Log::info('EEROROOROOROORORO ' . $user_id);
+            if (!Auth::check()) {
+                Log::info('User not authenticated');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            $user_id = Auth::id();
+            Log::info('User ID: ' . $user_id);
 
             $ispublisher = DB::table('users')->where('id', $user_id)
             ->first('is_publisher');
 
-            Log::info('EEROROOROOROORORO ' . $ispublisher );
-
-            Log::info('Does badge_exist? ' . gettype($ispublisher));
+            Log::info('Is publisher result: ' . json_encode($ispublisher));
 
             if($ispublisher == null){
-                return response()->json(['message'=>'User not found'], status:404);
+                return response()->json(['message' => 'User not found'], 404);
             }
 
             return response()->json($ispublisher);
         } catch (Exception $e){
+            Log::error('Error in getIsPublisher: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -607,32 +619,57 @@ class PublisherController extends Controller
     }
 
     public function approveParticipants(Request $request){
-        $user_id = $request->user_id;
-        $activity_id = $request->activity_id;
-        $status = $request->status;
         try {
-            // tolong ditambahin attribute status ke tabel activity_participants
+            if (!Auth::check()) {
+                Log::info('User not authenticated in approveParticipants');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            // Validate the request
+            $validated = $request->validate([
+                'user_id' => 'required|integer',
+                'activity_id' => 'required|integer',
+                'status' => 'required|string'
+            ]);
+
+            $user_id = $validated['user_id'];
+            $activity_id = $validated['activity_id'];
+            $status = $validated['status'];
+
+            Log::info('Approving participant: User ID: ' . $user_id . ', Activity ID: ' . $activity_id . ', Status: ' . $status);
+
             $query = DB::table("activity_participants")
                 ->where("user_id", $user_id)
                 ->where("activity_id", $activity_id)
                 ->update(["status" => $status]);
+
+            return response()->json(['message' => 'Participant status updated successfully']);
         } catch (Exception $e) {
+            Log::error('Error in approveParticipants: ' . $e->getMessage());
             throw $e;
         }
     }
 
     public function getAllActivites(Request $request){
-        $user_id = 18;
-        $activities = DB::table('activities')
-            ->join("activity_participants", "activities.id", "=", "activity_participants.activity_id")
-            ->where("activity_participants.user_id", $user_id)
-            ->select("activities.*")
-            ->get();
+        try {
+            if (!Auth::check()) {
+                Log::info('User not authenticated in getAllActivites');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
 
-        if($activities){
-            return response()->json($activities);
-        } else{
-            return response()->json([]);
+            $user_id = Auth::id();
+            Log::info('User ID in getAllActivites: ' . $user_id);
+
+            $activities = DB::table('activities')
+                ->join("activity_participants", "activities.id", "=", "activity_participants.activity_id")
+                ->where("activity_participants.user_id", $user_id)
+                ->select("activities.*")
+                ->get();
+
+            return response()->json($activities->isEmpty() ? [] : $activities);
+        } catch (Exception $e) {
+            Log::error('Error in getAllActivites: ' . $e->getMessage());
+            throw $e;
         }
     }
 }

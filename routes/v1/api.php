@@ -19,6 +19,7 @@ Route::prefix('/public')->group(function () {
             Route::post('/sso', [AuthController::class, 'loginSSO']);
             Route::get('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
         });
+        Route::post('/is-publisher', [AuthController::class, 'isPublisher']);
     });
 
     Route::prefix('/leaderboard')->group(function(){
@@ -38,7 +39,7 @@ Route::prefix('/public')->group(function () {
 });
 
 // Auth
-Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
+Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
     Route::prefix('/auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });

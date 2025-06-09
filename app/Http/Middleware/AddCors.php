@@ -15,15 +15,15 @@ class AddCors
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // $origin = $request->header('Origin');
+        $origin = $request->header('Origin');
 
         $response = $next($request);
 
         $response->headers->remove('Access-Control-Allow-Origin');
 
-        // if ($origin) {
-        //     $response->headers->set('Access-Control-Allow-Origin', $origin);
-        // }
+        if ($origin) {
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
+        }
 
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
