@@ -25,6 +25,8 @@ class ActivityController extends Controller
                 'per_page' => 'integer',
             ]);
 
+            Log::info("" . $request->activity_type);
+
             $activities = DB::table('activities', 'a')
                             ->select([
                                 'a.id',
@@ -64,7 +66,7 @@ class ActivityController extends Controller
                                 $query->where('a.name', 'ILIKE', "%$request->search_term%");
                             })
                             ->when($request->has('activity_type'), function ($query) use($request) {
-                                $query->whereIn('a.activity_type', $request->activity_type);
+                                $query->where('a.activity_type', $request->activity_type);
                             })
                             ->when($request->has('start_date'), function ($query) use($request) {
                                 $query->where('a.start_date', '>=', $request->start_date);
@@ -92,11 +94,11 @@ class ActivityController extends Controller
                                     'a.name',
                                     'a.description',
                                     'a.activity_type',
-                                    DB::raw("(
-                                        SELECT STRING_AGG(ar.name, ', ')
-                                        FROM activity_roles ar
-                                        WHERE ar.group_id = a.role_group_id
-                                    ) as roles"),
+                                    // DB::raw("(
+                                    //     SELECT STRING_AGG(ar.name, ', ')
+                                    //     FROM activity_roles ar
+                                    //     WHERE ar.group_id = a.role_group_id
+                                    // ) as roles"),
                                     DB::raw("(
                                         SELECT JSON_AGG(
                                             JSON_BUILD_OBJECT(

@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -33,8 +34,25 @@ class AuthController extends Controller
         $cookie = cookie(
             'vemer_token',
             $token,
-            config('session.lifetime')
+            config('session.lifetime'),
+            '/',
+            config('session.domain'),
+//            config('app.env') === 'production' || config('app.env') === 'staging',
+            true,
+            false,
+//            config('app.env') === 'production' || config('app.env') === 'staging' ? 'none' : 'lax'
         );
+
+        Log::info('Cookie created: ' . json_encode([
+            'name' => 'vemer_token',
+            'value' => $token,
+            'expires' => config('session.lifetime'),
+            'path' => '/',
+            'domain' => config('session.domain'),
+//            'secure' => config('app.env') === 'production' || config('app.env') === 'staging',
+            'httpOnly' => true,
+//            'sameSite' => config('app.env') === 'production' || config('app.env') === 'staging' ? 'none' : 'lax'
+        ]));
 
         return $cookie;
     }
@@ -59,7 +77,27 @@ class AuthController extends Controller
             Auth::login($user);
 
             return response()->json(new UserResource($user))
-                            ->withCookie($cookie);
+                            ->withCookie($cookie)
+                            ->header('Access-Control-Allow-Credentials', 'true');
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function isPublisher(Request $request) {
+        try {
+            Log::info('EEROROOROOROORORO ');
+            $user_id = Auth::id();
+            Log::info('EEROROOROOROORORO ' . $user_id);
+            $validatedRequest = $request->validate([
+                'is_publisher' => 'required|boolean',
+            ]);
+
+            DB::table('users')
+                ->where('id', $user_id)
+                ->update(['is_publisher' => $validatedRequest['is_publisher']]);
+
+            return response()->json(['message' => 'Publisher status updated successfully.'], 200);
         } catch (Exception $e) {
             throw $e;
         }
@@ -81,7 +119,8 @@ class AuthController extends Controller
             Auth::login($user);
 
             return response()->json(new UserResource($user))
-                            ->withCookie($cookie);
+                            ->withCookie($cookie)
+                            ->header('Access-Control-Allow-Credentials', 'true');
         }
         catch (Exception $e) {
             throw $e;
@@ -152,6 +191,7 @@ class AuthController extends Controller
                     ";
 
             return response($script, 200)->header('Content-Type', 'text/html')
+                                        ->header('Access-Control-Allow-Credentials', 'true')
                                         ->withCookie($cookie);
         } catch (Exception $e) {
             DB::rollBack();
@@ -169,6 +209,7 @@ class AuthController extends Controller
             return response()->json([
                                 'message' => 'Logged out successfully!'
                             ])
+                            ->header('Access-Control-Allow-Credentials', 'true')
                             ->withCookie($token_cookie);
         } catch (Exception $e) {
             DB::rollBack();

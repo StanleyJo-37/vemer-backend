@@ -37,7 +37,8 @@ Route::prefix('/public')->group(function () {
 });
 
 // Auth
-Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
+Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+    Route::post('/is-publisher', [AuthController::class, 'isPublisher']);
     Route::prefix('/auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
@@ -49,6 +50,9 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             Route::get('/get-status', [UserController::class, 'getStatus']);
         });
     });
+
+    // check if the user is a publisher or not
+    Route::get('/is-publisher', [PublisherController::class, 'getIsPublisher']);
 
     Route::prefix("/dashboard")->group(function () {
         Route::prefix("/user")->group(function () {
@@ -90,7 +94,10 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
             Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
-            // approve and unapprove participants
+            Route::get('/activity-participants/{id}', [PublisherController::class, 'getActivityParticipants']);
+            Route::post('/participant-status', [PublisherController::class, 'changeParticipantStatus']);
+            Route::post('/end-activity/{id}', [PublisherController::class, 'endActivity']);
+            Route::get('/stats', [PublisherController::class, 'getPublisherStats']);
         });
     });
 });
