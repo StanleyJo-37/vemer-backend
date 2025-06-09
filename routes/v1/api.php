@@ -19,7 +19,6 @@ Route::prefix('/public')->group(function () {
             Route::post('/sso', [AuthController::class, 'loginSSO']);
             Route::get('/sso/callback/{provider}', [AuthController::class, 'callbackSSO']);
         });
-        Route::post('/is-publisher', [AuthController::class, 'isPublisher']);
     });
 
     Route::prefix('/leaderboard')->group(function(){
@@ -31,15 +30,15 @@ Route::prefix('/public')->group(function () {
 
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
-        Route::get('/{id}', [ActivityController::class, 'getDetail']);
-        // Route::prefix('/{id}')->group(function (){
-        // });
+        Route::prefix('/{id}')->group(function (){
+            Route::get('/', [ActivityController::class, 'getDetail']);
+        });
     });
-
 });
 
 // Auth
 Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
+    Route::post('/is-publisher', [AuthController::class, 'isPublisher']);
     Route::prefix('/auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });

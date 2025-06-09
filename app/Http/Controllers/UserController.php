@@ -44,7 +44,7 @@ class UserController extends Controller
 
     public function getStatus(Request $request, $id){
         try{
-            $user_id = $request->user()->id;
+            $user_id = Auth::id();
             Log::info("Activity id: " . $id . " " . "User id: " . $user_id);
             $status = DB::table('activity_participants')
                 ->where('user_id', $user_id)

@@ -686,26 +686,29 @@ class PublisherController extends Controller
             throw $e;
         }
     }
-    public function getAllActivites(Request $request){
+    public function getAllActivites(Request $request) {
         try {
-            if (!Auth::check()) {
-                Log::info('User not authenticated in getAllActivites');
-                return response()->json(['message' => 'Unauthenticated'], 401);
-            }
-
+            // The `auth:sanctum` middleware already protects this route,
+            // so `Auth::id()` will exist. No need for `Auth::check()`.
             $user_id = Auth::id();
-            Log::info('User ID in getAllActivites: ' . $user_id);
 
             $activities = DB::table('activities')
                 ->join("activity_participants", "activities.id", "=", "activity_participants.activity_id")
+                ->join("badges", "activities.id", "=", "badges.activity_id")
                 ->where("activity_participants.user_id", $user_id)
-                ->select("activities.*")
+                // THE FIX: Be explicit. Select all columns from 'activities'
+                // and make sure to explicitly select the activity's ID.
+                ->select("activities.*", "badges.name")
                 ->get();
 
-            return response()->json($activities->isEmpty() ? [] : $activities);
+            // ->get() already returns an empty collection if no results are found,
+            // which becomes an empty array [] in JSON. The isEmpty() check is not needed.
+            return response()->json($activities);
+
         } catch (Exception $e) {
             Log::error('Error in getAllActivites: ' . $e->getMessage());
-            throw $e;
+            // Return a proper JSON error response
+            return response()->json(['message' => 'An error occurred while fetching activities.'], 500);
         }
     }
 
@@ -750,7 +753,6 @@ class PublisherController extends Controller
                             $badges = [
                                 'user_id' => $participantId,
                                 'badge_id' => $badge->id,
-                                'points_awarded' => 10,
                                 'created_at' => now(),
                                 'updated_at' => now(),
                                 'favourite' => 10
