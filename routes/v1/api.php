@@ -95,6 +95,8 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
             Route::post('/upload-image', [PublisherController::class, 'uploadImage']);
             // get notifications paginate
             Route::get('/notifications', [PublisherController::class, 'getNotifications']);
+            Route::get('/activity-participants/{id}', [PublisherController::class, 'getActivityParticipants']);
+            Route::post('/participant-status', [PublisherController::class, 'changeParticipantStatus']);
         });
     });
 });

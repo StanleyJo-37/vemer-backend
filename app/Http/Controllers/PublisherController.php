@@ -226,7 +226,7 @@ class PublisherController extends Controller
             $registration_id = DB::table('activity_participants')->insertGetId([
                 'user_id' => $user_id,
                 'activity_id' => $activity,
-                'status' => 'approved',
+                'status' => 'Confirmed',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -618,10 +618,10 @@ class PublisherController extends Controller
         }
     }
 
-    public function approveParticipants(Request $request){
+    public function changeParticipantStatus(Request $request){
         try {
             if (!Auth::check()) {
-                Log::info('User not authenticated in approveParticipants');
+                Log::info('User not authenticated in changeParticipant');
                 return response()->json(['message' => 'Unauthenticated'], 401);
             }
 
@@ -650,6 +650,41 @@ class PublisherController extends Controller
         }
     }
 
+    public function getActivityParticipants(Request $request, int $id){
+        try {
+            if (!Auth::check()) {
+                Log::info('User not authenticated in getParticipants');
+                return response()->json(['message' => 'Unauthenticated'], 401);
+            }
+
+            $publisher_id = Auth::id();
+
+            Log::info('User ID in getParticipants: ' . $publisher_id);
+            $participants = DB::table('activity_participants')
+                ->join("users", "activity_participants.user_id", "=", "users.id")
+                ->where("activity_participants.activity_id", $id)
+                ->select("users.*", "activity_participants.status")
+                ->get();
+
+            $isPublisherInList = $participants->contains('id', $publisher_id);
+
+            if ($isPublisherInList) {
+                Log::info("Publisher ($publisher_id) was found in the participant list for activity $id.");
+                $participantsWithoutPublisher = $participants->where('id', '!=', $publisher_id)
+                    ->select('id', 'name', 'email', 'status');
+                return response()->json($participantsWithoutPublisher);
+            } else {
+                // The publisher's ID was NOT found among the participants
+                Log::info("Publisher ($publisher_id) was NOT in the participant list for activity $id.");
+                return response()->json([
+                    'message' => 'Not a publisher.'
+                ], 404);
+            }
+        } catch (Exception $e) {
+            Log::error('Error in getParticipants: ' . $e->getMessage());
+            throw $e;
+        }
+    }
     public function getAllActivites(Request $request){
         try {
             if (!Auth::check()) {
