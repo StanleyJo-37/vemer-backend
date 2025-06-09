@@ -148,9 +148,9 @@ class ActivityController extends Controller
     // Auth
     public function enroll(Request $request, int $id) {
         try {
-            $request->validate([
-                'roles' => 'required|array'
-            ]);
+//            $request->validate([
+//                'roles' => 'required|array'
+//            ]);
 
             $user = Auth::user();
 
