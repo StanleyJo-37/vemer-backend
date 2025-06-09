@@ -98,6 +98,7 @@ Route::prefix('/auth')->middleware('auth:sanctum')->group(function () {
             Route::get('/activity-participants/{id}', [PublisherController::class, 'getActivityParticipants']);
             Route::post('/participant-status', [PublisherController::class, 'changeParticipantStatus']);
             Route::post('/end-activity/{id}', [PublisherController::class, 'endActivity']);
+            Route::get('/stats', [PublisherController::class, 'getPublisherStats']);
         });
     });
 });

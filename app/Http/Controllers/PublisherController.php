@@ -781,4 +781,35 @@ class PublisherController extends Controller
             throw $e;
         }
     }
+
+    public function getPublisherStats(Request $id) {
+        try {
+            $id = Auth::id();
+            $total_activities = DB::table('activity_participants')
+                ->where('user_id', $id)
+                ->distinct()
+                ->count('activity_id');
+
+            $published_activities = DB::table('activity_participants')
+                ->where("activity_participants.user_id", $id) // user's activities
+                ->where("id", "!=", $id)
+                ->pluck('activity_id');
+
+            $total_participants = $published_activities
+                ->unique()
+                ->count();
+
+            $total_notifications = DB::table('activity_notification')
+                ->whereIn('activity_id', $published_activities)
+                ->count();
+
+            return response()->json([
+                'total_activities' => $total_activities,
+                'total_participants' => $total_participants,
+                'total_notifications' => $total_notifications,
+            ]);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
 }
