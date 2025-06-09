@@ -30,11 +30,10 @@ Route::prefix('/public')->group(function () {
 
     Route::prefix('/activities')->group(function () {
         Route::get('/', [ActivityController::class, 'get']);
-        Route::get('/{id}', [ActivityController::class, 'getDetail']);
-        // Route::prefix('/{id}')->group(function (){
-        // });
+        Route::prefix('/{id}')->group(function (){
+            Route::get('/', [ActivityController::class, 'getDetail']);
+        });
     });
-
 });
 
 // Auth

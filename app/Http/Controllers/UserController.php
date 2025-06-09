@@ -233,10 +233,16 @@ class UserController extends Controller
             }
 
             $badges = DB::table('user_badges as ub')
-                        ->join('badges as b', 'ub.badge_id', '=', 'b.id')
-                        ->where('ub.user_id', $user->id)
-                        ->select(['b.name', 'b.'])
-                        ->paginate($page_count);
+                ->join('badges as b', 'ub.badge_id', '=', 'b.id')
+                ->join('activities as a', 'ub.activity_id', '=', 'a.id')
+                ->join('model_has_category as mhc', function ($join) {
+                    $join->on('mhc.model_id', '=', 'a.id')
+                            ->where('mhc.model_type', '=', 'Activity::class');
+                })
+                ->join('categories as c', 'mhc.category_id', '=', 'c.id')
+                ->where('ub.user_id', $user->id)
+                ->select('b.name as badge_name', 'b.description', 'c.name as category_name', 'ub.created_at as created_at', 'ub.favourite as favourite')
+                ->paginate($page_count);
 
             return response()->json($badges);
         } catch (Exception $e) {

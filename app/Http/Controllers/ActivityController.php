@@ -43,6 +43,19 @@ class ActivityController extends Controller
                                     FROM badges b
                                     WHERE b.activity_id = a.id
                                 ) as badges"),
+                                DB::raw("(
+
+                                    SELECT JSON_AGG(
+                                        JSON_BUILD_OBJECT(
+                                            'id', c.id,
+                                            'name', c.name
+                                        )
+                                    )
+                                    FROM categories c
+                                    JOIN model_has_category mhc ON mhc.model_type = '" . Activity::class . "'
+                                    WHERE mhc.model_id = a.id
+
+                                ) as categories"),
                                 DB::raw("COUNT(par.user_id) AS participant_count"),
                                 DB::raw("TO_CHAR(a.start_date, 'YYYY-mm-dd HH24:MI:SS') as start_date"),
                                 DB::raw("TO_CHAR(a.end_date, 'YYYY-mm-dd HH24:MI:SS') as end_date"),
@@ -62,59 +75,83 @@ class ActivityController extends Controller
                                 $query->where('a.end_date', '<=', $request->end_date);
                             })
                             ->where('a.status', 1)
-                            // ->where('a.start_date', '<=', Carbon::now())
-                            // ->where('a.end_date', '>=', Carbon::now())
+                            ->where('a.start_date', '<=', Carbon::now())
+                            ->where('a.end_date', '>=', Carbon::now())
                             ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug');
 
             $activities = $request->has('per_page') ? $activities->paginate($request->per_page) : $activities->get();
 
             return response()->json($activities);
         } catch (Exception $e) {
-            throw $e;
+            return response()->json($e->getMessage(), 500);
         }
     }
 
     public function getDetail(Request $request, int $id) {
         try {
-           $activity = DB::table('activities as a')->select([
-                                   'a.id',
-                                   'a.name',
-                                   'a.description',
-                                   'a.activity_type',
-                                //    DB::raw("(
-                                //        SELECT STRING_AGG(ar.name, ', ')
-                                //        FROM activity_roles ar
-                                //        WHERE ar.group_id = a.role_group_id
-                                //    ) as roles"),
-                                   DB::raw("(
-                                       SELECT JSON_AGG(JSON_BUILD_OBJECT('id', b.id, 'name', b.name))
-                                       FROM badges b
-                                       WHERE b.activity_id = a.id
-                                   ) as badges"),
-                                   DB::raw("COUNT(par.user_id) AS participant_count"),
-                                   DB::raw("TO_CHAR(a.start_date, 'YYYY-mm-dd HH24:MI:SS') as start_date"),
-                                   DB::raw("TO_CHAR(a.end_date, 'YYYY-mm-dd HH24:MI:SS') as end_date"),
-                                   'a.slug',
-                               ])
-                               ->join('activity_participants as par', 'par.activity_id', '=', 'a.id')
-                               ->where('a.status', 1)
-                               // ->where('a.start_date', '<=', Carbon::now())
-                               // ->where('a.end_date', '>=', Carbon::now())
-                               ->where('a.id', $id)
-                               ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug')
-                               ->first();
+        $activity = DB::table('activities as a')->select([
+            'a.id as id',
+            'a.name as name',
+            'a.description as description',
+            'a.activity_type as activity_type',
+            'a.status as status',
+            'a.location as location',
+            'a.points_reward as points_reward',
+            DB::raw("(
+            SELECT TO_JSONB(sub)
+            FROM (
+                SELECT b.id, b.name, b.description
+                FROM badges b
+                WHERE b.activity_id = a.id
+                ORDER BY b.id ASC
+                LIMIT 1
+            ) sub
+            ) as badge"),
+            DB::raw("COUNT(par.user_id) AS participant_count"),
+            DB::raw("TO_CHAR(a.start_date, 'YYYY-MM-DD\"T\"HH24:MI:SS') as start_date"),
+            DB::raw("TO_CHAR(a.end_date, 'YYYY-MM-DD\"T\"HH24:MI:SS') as end_date"),
+            'a.slug',
+            'rpi.title as popup_title',
+            'rpi.description as popup_description',
+            // 'c.name as category'
+        ])
+        ->join('activity_participants as par', 'par.activity_id', '=', 'a.id')
+        ->join('registration_popup_info as rpi', 'rpi.activity_id', '=', 'a.id')
+        // ->join('model_has_category as mhc', function ($join) {
+        //     $join->on('mhc.model_id', '=', 'a.id')
+        //         ->where('mhc.model_type', '=', 'Activity::class');
+        // })
+        // ->join('categories as c', 'mhc.category_id', '=', 'c.id')
+        ->where('a.status', 1)
+        ->where('a.id', $id)
+        ->groupBy(
+            'a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.status',
+            'a.location', 'a.points_reward', 'a.slug', 'rpi.title', 'rpi.description'
+        )
+        ->first();
+        Log::info("EROROOROROROORRRRROOOOO");
 
-            if (!$activity) {
+        if ($activity) {
+            // Move popup_title and popup_description into a popup_info object
+            $activity = (array)$activity;
+            $activity['popup_info'] = [
+                'title' => $activity['popup_title'],
+                'description' => $activity['popup_description'],
+            ];
+            unset($activity['popup_title'], $activity['popup_description']);
+            $activity = (object)$activity;
+        }
+
+            if (! isset($activity)) {
                 return response()->json('Activity not found.', 404);
             }
 
             $thumbnail = AssetController::getAsset($activity->id, Activity::class, 'Thumbnail');
-//            $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);
-            $activity->thumbnail = $thumbnail;
+            $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);
 
             return response()->json($activity);
         } catch (Exception $e) {
-            throw $e;
+            return response()->json($e->getMessage(), 500);
         }
     }
 
@@ -125,23 +162,23 @@ class ActivityController extends Controller
 //                'roles' => 'required|array'
 //            ]);
 
-            $user_id = Auth::id();
+            $user = Auth::user();
 
             $registration_id = ActivityParticipants::insertGetId([
-                'user_id' => $user_id,
-                'activity_id' => $id,
+                'user_id' => $user->id,
+                'activitiy_id' => $id,
             ]);
 
-//            foreach ($request->roles as $role_id) {
-//                ActivityParticipantRole::create([
-//                    'registration_id' => $registration_id,
-//                    'role_id' => $role_id
-//                ]);
-//            }
+            foreach ($request->roles as $role_id) {
+                ActivityParticipantRole::create([
+                    'registration_id' => $registration_id,
+                    'role_id' => $role_id
+                ]);
+            }
 
             return response()->json($registration_id);
         } catch (Exception $e) {
-            throw $e;
+            return response()->json($e->getMessage(), 500);
         }
     }
 }
