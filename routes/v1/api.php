@@ -27,6 +27,13 @@ Route::prefix('/public')->group(function () {
         Route::get('/total-points', [LeaderboardController::class, 'totalPointsEarned']);
         Route::get('/events-completed', [LeaderboardController::class, 'totalEventsCompleted']);
     });
+
+    Route::prefix('/activities')->group(function () {
+        Route::get('/', [ActivityController::class, 'get']);
+        Route::prefix('/{id}')->group(function (){
+            Route::get('/', [ActivityController::class, 'getDetail']);
+        });
+    });
 });
 
 // Auth
@@ -37,9 +44,7 @@ Route::prefix('/auth')->middleware('api', 'auth:sanctum')->group(function () {
 
     Route::get('/me', [ProfileController::class, 'me']);
     Route::prefix('/activities')->group(function () {
-        Route::get('/', [ActivityController::class, 'get']);
         Route::prefix('/{id}')->group(function (){
-            Route::get('/', [ActivityController::class, 'getDetail']);
             Route::post('/enroll', [ActivityController::class, 'enroll']);
             Route::get('/get-status', [UserController::class, 'getStatus']);
         });
