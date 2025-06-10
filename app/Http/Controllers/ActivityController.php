@@ -18,14 +18,12 @@ class ActivityController extends Controller
     public function get(Request $request) {
         try {
             $request->validate([
-                'search_term' => 'string',
-                'activity_type' => 'string|exists:activities,activity_type',
-                'start_date' => 'date_format:Y-m-d H:i:s',
-                'end_date' => 'date_format:Y-m-d H:i:s|after:start_date',
-                'per_page' => 'integer',
+                // 'search_term' => 'string',
+                // 'activity_type' => 'string|exists:activities,activity_type',
+                // 'start_date' => 'date_format:Y-m-d H:i:s',
+                // 'end_date' => 'date_format:Y-m-d H:i:s|after:start_date',
+                // 'per_page' => 'integer',
             ]);
-
-            Log::info("" . $request->activity_type);
 
             $activities = DB::table('activities', 'a')
                             ->select([
@@ -33,11 +31,11 @@ class ActivityController extends Controller
                                 'a.name',
                                 'a.description',
                                 'a.activity_type',
-                                DB::raw("(
-                                    SELECT STRING_AGG(ar.name, ', ')
-                                    FROM activity_roles ar
-                                    WHERE ar.group_id = a.role_group_id
-                                ) as roles"),
+                                // DB::raw("(
+                                //     SELECT STRING_AGG(ar.name, ', ')
+                                //     FROM activity_roles ar
+                                //     WHERE ar.group_id = a.role_group_id
+                                // ) as roles"),
                                 DB::raw("(
                                     SELECT JSON_AGG(JSON_BUILD_OBJECT('id', b.id, 'name', b.name))
                                     FROM badges b
@@ -61,7 +59,7 @@ class ActivityController extends Controller
                                 DB::raw("TO_CHAR(a.end_date, 'YYYY-mm-dd HH24:MI:SS') as end_date"),
                                 'a.slug',
                             ])
-                            ->join('activity_participants as par', 'par.activity_id', '=', 'a.id')
+                            ->leftJoin('activity_participants as par', 'par.activity_id', '=', 'a.id')
                             ->when($request->has('search_term'), function ($query) use($request) {
                                 $query->where('a.name', 'ILIKE', "%$request->search_term%");
                             })
@@ -75,11 +73,15 @@ class ActivityController extends Controller
                                 $query->where('a.end_date', '<=', $request->end_date);
                             })
                             ->where('a.status', 1)
-                            ->where('a.start_date', '<=', Carbon::now())
-                            ->where('a.end_date', '>=', Carbon::now())
+                            // ->where('a.start_date', '<=', Carbon::now())
+                            // ->where('a.end_date', '>=', Carbon::now())
                             ->groupBy('a.id', 'a.name', 'a.description', 'a.activity_type', 'a.start_date', 'a.end_date', 'a.slug');
 
             $activities = $request->has('per_page') ? $activities->paginate($request->per_page) : $activities->get();
+
+            foreach ($activities as &$a) {
+                $a->thumbnail = AssetController::getAsset($a->id, 'App\\Models\\Activity', 'Thumbnail');
+            }
 
             return response()->json($activities);
         } catch (Exception $e) {
@@ -136,8 +138,7 @@ class ActivityController extends Controller
                 return response()->json('Activity not found.', 404);
             }
 
-            $thumbnail = AssetController::getAsset($activity->id, Activity::class, 'Thumbnail');
-            $details = AssetController::getAsset($activity->id, Activity::class, 'Details', false);
+            $activity->thumbnail = AssetController::getAsset($activity->id, 'App\\Models\\Activity', 'Thumbnail');
             
             return response()->json($activity);
         } catch (Exception $e) {
@@ -156,7 +157,7 @@ class ActivityController extends Controller
 
             $registration_id = ActivityParticipants::insertGetId([
                 'user_id' => $user->id,
-                'activitiy_id' => $id,
+                'activity_id' => $id,
             ]);
 
             foreach ($request->roles as $role_id) {
