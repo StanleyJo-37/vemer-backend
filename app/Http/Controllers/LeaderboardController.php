@@ -5,86 +5,79 @@ namespace App\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LeaderboardController extends Controller
 {
-    // koneksi category dengan activity,
-    public function getLeaderboardByID(int $leaderboard_id, Request $request){
+    public function getLeaderboard(Request $request)
+    {
         try {
-            $request->validate([
-                'per_page' => 'required|integer',
+            $validated = $request->validate([
+                'per_page' => 'sometimes|integer|min:1',
+                'category' => 'nullable|string',
             ]);
 
-            $leaderboard = DB::table('leaderboards as l')
-                                ->select([
-                                    'l.id',
-                                    'l.name',
-                                    DB::raw("(
-                                        SELECT JSON_AGG(
-                                            JSON_BUILD_OBJECT(
-                                                // 'id', u.id,
-                                                'username', u.username,
-                                                'points', user_points.total_points,
-                                                'level', CASE
-                                                    WHEN user_points.total_points >= 5000 THEN 'Sigma'
-                                                    WHEN user_points.total_points >= 1000 THEN 'Alpha'
-                                                    WHEN user_points.total_points >= 500 THEN 'Gold'
-                                                    WHEN user_points.total_points >= 100 THEN 'Silver'
-                                                    ELSE 'Bronze'
-                                                END
-                                            )
-                                            ORDER BY user_points.total_points DESC
-                                        )
-                                        FROM (
-                                            SELECT up.user_id, SUM(up.point) as total_points
-                                            FROM user_points up
-                                            WHERE up.leaderboard_id = l.id
-                                            GROUP BY up.user_id
-                                        ) as user_points
-                                        JOIN users u ON u.id = user_points.user_id
-                                    ) AS ranking"),
-                                    DB::raw("(
-                                        SELECT JSON_AGG(
-                                            JSON_BUILD_OBJECT(
-                                                'id', a.id,
-                                                'name', a.name
-                                            )
-                                        )
-                                        FROM activities as a
-                                        JOIN leaderboard_activity as la ON la.activity_id = a.id
-                                        WHERE la.leaderboard_id = l.id
-                                    ) AS activities"),
-                                ])
-                                ->where('l.id', $leaderboard_id)
-                                ->where('l.is_active', true)
-                                ->paginate($request->per_page);
+            $category = $validated['category'] ?? null;
+            $perPage = $validated['per_page'] ?? 15;
 
-            return response()->json($leaderboard);
-        } catch (Exception $e){
-            throw $e;
-        }
-    }
+            $rankingsQuery = DB::table('users as u')
+                ->join('user_points as up', 'u.id', '=', 'up.user_id')
+                ->select(
+                    'u.id',
+                    'u.username',
+                    'u.profile_photo_path',
+                    DB::raw('SUM(up.point) as total_points'),
 
-    public function getLeaderboard(Request $request){
-        $category = $request->category;
-        if($category == "all"){
+                    // --- THIS IS THE NEW LINE FOR RANKING ---
+                    // It tells the database to assign a row number after ordering
+                    // all users by the sum of their points, descending.
+                    DB::raw('RANK() OVER (ORDER BY SUM(up.point) DESC) as rank')
 
-        } else {
+                )
+                ->when($category && $category !== 'all', function ($query) use ($category) {
+                    $query->whereIn('up.activity_id', function ($subquery) use ($category) {
+                        $subquery->select('id')
+                            ->from('activities')
+                            ->where('activity_type', $category);
+                    });
+                })
+                ->groupBy('u.id', 'u.username', 'u.profile_photo_path')
+                ->orderBy('total_points', 'desc');
 
+            $paginatedRankings = $rankingsQuery->paginate($perPage);
+
+            return response()->json($paginatedRankings);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Invalid parameters provided.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Leaderboard Error: ' . $e->getMessage());
+            return response()->json(['message' => 'An error occurred while fetching the leaderboard.'], 500);
         }
     }
 
     public function totalActiveUser(Request $request){
         $category = $request->category;
         try{
-            if($category == NULL){
-                // full active user from all category
+            Log::info("Category: " . $category);
+            // Base query to count distinct users who have participated in activities
+            $query = DB::table('activity_participants')
+                ->join('activities', 'activity_participants.activity_id', '=', 'activities.id')
+                ->join('users', 'activity_participants.user_id', '=', 'users.id')
+                ->distinct()
+                ->select(DB::raw('COUNT(DISTINCT activity_participants.user_id) as total_active_users'));
+
+            if($category == "all"){
+                // Count all active users across all categories
+                $totalActiveUsers = $query->count('activity_participants.user_id');
             } else {
-                // categorical total active user
+                // Count active users for a specific category (activity_type)
+                $totalActiveUsers = $query
+                    ->where('activities.activity_type', $category)
+                    ->count('activity_participants.user_id');
             }
 
-
-            // return number/int
+            return response()->json($totalActiveUsers);
         } catch (Exception $e){
             throw $e;
         }
@@ -100,17 +93,14 @@ class LeaderboardController extends Controller
 
             if($category == "all"){
                 $totalPoints = $query->sum('user_points.point');
-
-                return response()->json($totalPoints);
+                $totalPointsAsNumber = (int) $totalPoints;
+                return response()->json($totalPointsAsNumber);
             } else {
                 $totalPointsCategory = $query->where('activities.activity_type', $category)
                     ->sum('user_points.point');
-
-                return response()->json($totalPointsCategory);
+                $totalPointsAsNumber = (int) $totalPointsCategory;
+                return response()->json($totalPointsAsNumber);
             }
-
-
-            // return number/int
         } catch (Exception $e){
             throw $e;
         }
@@ -133,8 +123,6 @@ class LeaderboardController extends Controller
 
                 return response()->json($totalEventsCategory);
             }
-
-            // return number/int
         } catch (Exception $e){
             throw $e;
         }
