@@ -1,66 +1,169 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <h1><b>Vemer</b></h1>
+  <p><i>Your Go-To Platform for Volunteer and Activity Management, Gamified!</i></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  <p>
+    <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+    <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  </p>
+</div>
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### **📖 Table of Contents**
+<details open>
+  <summary>Click to view</summary>
+  <ol>
+    <li><a href="#-about-the-project">About The Project</a></li>
+    <li><a href="#-key-features">Key Features</a></li>
+    <li><a href="#-tech-stack">Tech Stack</a></li>
+    <li><a href="#-getting-started">Getting Started</a></li>
+    <li><a href="#-api-endpoints">API Endpoints</a></li>
+    <li><a href="#-contributing">Contributing</a></li>
+    <li><a href="#-license">License</a></li>
+  </ol>
+</details>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🎯 About The Project
 
-## Learning Laravel
+**Vemer** is a centralized activity management system built with Laravel, designed to bridge the gap between event organizers and volunteers. It introduces a layer of **gamification**—including points, badges, and leaderboards—to create an engaging and rewarding experience for participants, motivating them to join and contribute to events.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Whether you're an organizer looking for an efficient way to manage your events or a volunteer searching for meaningful opportunities, Vemer provides the tools you need in one seamless platform.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ✨ Key Features
 
-## Laravel Sponsors
+Vemer is packed with features to serve both event organizers and participants:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### 👤 For Everyone
+- **🛡️ Secure Authentication**: Robust user registration and login, with support for Google SSO.
+- **🧭 Activity Discovery**: Browse and search for activities based on type, date, and keywords.
+- **🏆 Gamified Profile**: Track points, view earned badges, and see your level progress.
+- **🌍 Global Leaderboard**: See how you rank against other volunteers in the community.
+- **🔔 Personalized Dashboard**: Get recommendations, view upcoming events, and see announcements.
 
-### Premium Partners
+#### 🎪 For Publishers (Event Organizers)
+- **📝 Create & Manage Activities**: A dedicated dashboard to create, update, and manage events.
+- **🏅 Custom Badge Creation**: Design and award unique badges to participants for their achievements.
+- **✅ Participant Management**: Easily view and approve participant enrollment for your activities.
+- **📢 Notifications**: Keep your participants informed with activity-specific announcements.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+---
 
-## Contributing
+## 🛠️ Tech Stack
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This project is built with a modern and powerful tech stack to ensure a robust and scalable application.
 
-## Code of Conduct
+| Category      | Technology   | Badge                                                                                                                              |
+| :------------ | :----------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend** | PHP          | ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)                                        |
+| **Backend** | Laravel      | ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)                             |
+| **Database** | PostgreSQL   | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)                     |
+| **Frontend** | JavaScript   | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)                    |
+| **Frontend** | Vite         | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)                                     |
+| **Frontend** | Tailwind CSS | ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)               |
+| **Storage** | Supabase     | ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)                           |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🚀 Getting Started
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+To get a local copy up and running, please follow these steps.
 
-## License
+### **Prerequisites**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Make sure you have the following installed on your development machine:
+- PHP >= 8.2
+- Composer
+- Node.js & npm
+- PostgreSQL
+
+### **Installation Guide**
+<details>
+  <summary><strong>Click to expand installation steps</strong></summary>
+  <br />
+  <ol>
+    <li>
+      <strong>Clone the repository:</strong>
+      <pre><code>git clone https://github.com/your-username/vemer-backend.git
+cd vemer-backend</code></pre>
+    </li>
+    <li>
+      <strong>Install PHP and JavaScript dependencies:</strong>
+      <pre><code>composer install
+npm install</code></pre>
+    </li>
+    <li>
+      <strong>Set up your environment:</strong>
+      <p>Copy the <code>.env.example</code> file to <code>.env</code> and generate your application key.</p>
+      <pre><code>cp .env.example .env
+php artisan key:generate</code></pre>
+      <p>Next, open your <code>.env</code> file and configure your database (<code>DB_*</code>), Supabase storage, and Google SSO credentials.</p>
+    </li>
+    <li>
+      <strong>Run database migrations and seeders:</strong>
+      <p>This will create the necessary tables and populate them with initial data.</p>
+      <pre><code>php artisan migrate --seed</code></pre>
+    </li>
+    <li>
+      <strong>Build frontend assets:</strong>
+      <pre><code>npm run build</code></pre>
+    </li>
+    <li>
+      <strong>Launch the application:</strong>
+      <p>Run the backend and frontend development servers in separate terminals.</p>
+      <pre><code># Run the Laravel backend server
+php artisan serve
+
+# Run the Vite frontend server for hot-reloading
+npm run dev</code></pre>
+    </li>
+  </ol>
+</details>
+
+---
+
+## 🔌 API Endpoints
+
+Vemer is powered by a RESTful API. All routes are defined in `routes/v1/api.php`.
+
+<details>
+  <summary><strong>Click to see example API endpoints</strong></summary>
+  <br />
+  
+  **Public Routes**
+  - `POST /public/auth/register`
+  - `POST /public/auth/login`
+  - `GET /public/leaderboard/user`
+
+  **Authenticated Routes**
+  - `GET /auth/me`
+  - `GET /auth/activities`
+  - `POST /auth/dashboard/publisher/create-activity`
+  - `GET /auth/dashboard/user/stats`
+
+  *For a complete list of endpoints, please refer to the `routes/v1/api.php` file.*
+</details>
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is open-sourced software licensed under the **MIT license**. See the `LICENSE` file for more information.
