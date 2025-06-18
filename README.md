@@ -14,19 +14,20 @@
 <details open>
   <summary>Click to view</summary>
   <ol>
-    <li><a href="#-about-the-project">About The Project</a></li>
-    <li><a href="#-key-features">Key Features</a></li>
-    <li><a href="#-tech-stack">Tech Stack</a></li>
-    <li><a href="#-getting-started">Getting Started</a></li>
-    <li><a href="#-api-endpoints">API Endpoints</a></li>
-    <li><a href="#-contributing">Contributing</a></li>
-    <li><a href="#-license">License</a></li>
+    <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#related-projects">Related Projects</a></li>
+    <li><a href="#key-features">Key Features</a></li>
+    <li><a href="#tech-stack">Tech Stack</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#api-endpoints">API Endpoints</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
   </ol>
 </details>
 
 ---
 
-## 🎯 About The Project
+## About The Project 🎯
 
 **Vemer** is a centralized activity management system built with Laravel, designed to bridge the gap between event organizers and volunteers. It introduces a layer of **gamification**—including points, badges, and leaderboards—to create an engaging and rewarding experience for participants, motivating them to join and contribute to events.
 
@@ -34,42 +35,50 @@ Whether you're an organizer looking for an efficient way to manage your events o
 
 ---
 
-## ✨ Key Features
+## Related Projects 🔗
+
+This repository contains the backend API for the Vemer platform.
+
+- **Frontend Repository**: [**`github.com/StanleyJo-37/vemer-frontend`**](https://github.com/StanleyJo-37/vemer-frontend)
+
+---
+
+## Key Features ✨
 
 Vemer is packed with features to serve both event organizers and participants:
 
-#### 👤 For Everyone
-- **🛡️ Secure Authentication**: Robust user registration and login, with support for Google SSO.
-- **🧭 Activity Discovery**: Browse and search for activities based on type, date, and keywords.
-- **🏆 Gamified Profile**: Track points, view earned badges, and see your level progress.
-- **🌍 Global Leaderboard**: See how you rank against other volunteers in the community.
-- **🔔 Personalized Dashboard**: Get recommendations, view upcoming events, and see announcements.
+#### For Everyone 👤
+- **Secure Authentication**: Robust user registration and login, with support for Google SSO.
+- **Activity Discovery**: Browse and search for activities based on type, date, and keywords.
+- **Gamified Profile**: Track points, view earned badges, and see your level progress.
+- **Global Leaderboard**: See how you rank against other volunteers in the community.
+- **Personalized Dashboard**: Get recommendations, view upcoming events, and see announcements.
 
-#### 🎪 For Publishers (Event Organizers)
-- **📝 Create & Manage Activities**: A dedicated dashboard to create, update, and manage events.
-- **🏅 Custom Badge Creation**: Design and award unique badges to participants for their achievements.
-- **✅ Participant Management**: Easily view and approve participant enrollment for your activities.
-- **📢 Notifications**: Keep your participants informed with activity-specific announcements.
-
----
-
-## 🛠️ Tech Stack
-
-This project is built with a modern and powerful tech stack to ensure a robust and scalable application.
-
-| Category      | Technology   | Badge                                                                                                                              |
-| :------------ | :----------- | :--------------------------------------------------------------------------------------------------------------------------------- |
-| **Backend** | PHP          | ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)                                        |
-| **Backend** | Laravel      | ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)                             |
-| **Database** | PostgreSQL   | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)                     |
-| **Frontend** | JavaScript   | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)                    |
-| **Frontend** | Vite         | ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)                                     |
-| **Frontend** | Tailwind CSS | ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)               |
-| **Storage** | Supabase     | ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)                           |
+#### For Publishers (Event Organizers) 🎪
+- **Create & Manage Activities**: A dedicated dashboard to create, update, and manage events.
+- **Custom Badge Creation**: Design and award unique badges to participants for their achievements.
+- **Participant Management**: Easily view and approve participant enrollment for your activities.
+- **Notifications**: Keep your participants informed with activity-specific announcements.
 
 ---
 
-## 🚀 Getting Started
+## Tech Stack 🛠️
+
+This project is built with a modern and powerful tech stack. Click on any badge to visit its official website.
+
+| Category      | Technology   | Badge                                                                                                                                                           |
+| :------------ | :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend** | PHP          | <a href="https://www.php.net" target="_blank">![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)</a>                   |
+| **Backend** | Laravel      | <a href="https://laravel.com" target="_blank">![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)</a>         |
+| **Database** | PostgreSQL   | <a href="https://www.postgresql.org" target="_blank">![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)</a> |
+| **Frontend** | JavaScript   | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)</a> |
+| **Frontend** | Vite         | <a href="https://vitejs.dev" target="_blank">![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)</a>                   |
+| **Frontend** | Tailwind CSS | <a href="https://tailwindcss.com" target="_blank">![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)</a> |
+| **Storage** | Supabase     | <a href="https://supabase.com" target="_blank">![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)</a>     |
+
+---
+
+## Getting Started 🚀
 
 To get a local copy up and running, please follow these steps.
 
@@ -126,7 +135,7 @@ npm run dev</code></pre>
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints 🔌
 
 Vemer is powered by a RESTful API. All routes are defined in `routes/v1/api.php`.
 
@@ -150,7 +159,7 @@ Vemer is powered by a RESTful API. All routes are defined in `routes/v1/api.php`
 
 ---
 
-## 🤝 Contributing
+## Contributing 🤝
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -164,6 +173,6 @@ If you have a suggestion that would make this better, please fork the repo and c
 
 ---
 
-## 📄 License
+## License 📄
 
 This project is open-sourced software licensed under the **MIT license**. See the `LICENSE` file for more information.
